@@ -1,6 +1,31 @@
 
-import Link from "next/link";
+import Sidebar from "@/components/Sidebar";
 
+// ÍCONE DE GOTA DE SANGUE
+function IconeGota({
+  tamanho = 30,
+}: {
+  tamanho?: number;
+}) {
+  return (
+    <svg
+      width={tamanho}
+      height={tamanho}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#B32630"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 2C9 6.5 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-4-8.5-7-13Z" />
+      <path d="M9 18c.8 1 1.8 1.5 3 1.5" />
+    </svg>
+  );
+}
+
+// ESTOQUE POR TIPO SANGUÍNEO
 const tiposSanguineos = [
   { tipo: "A+", quantidade: 50, status: "Adequado" },
   { tipo: "A-", quantidade: 21, status: "Adequado" },
@@ -12,17 +37,18 @@ const tiposSanguineos = [
   { tipo: "AB-", quantidade: 10, status: "Estoque Baixo" },
 ];
 
-// Total calculado automaticamente
+// TOTAL DE BOLSAS
 const totalBolsas = tiposSanguineos.reduce(
   (total, item) => total + item.quantidade,
   0
 );
 
+// INDICADORES DO DASHBOARD
 const indicadores = [
   {
     titulo: "Total de bolsas no estoque",
     valor: totalBolsas,
-    icone: "♧",
+    icone: "gota",
   },
   {
     titulo: "Transações hoje",
@@ -41,64 +67,16 @@ const indicadores = [
   },
 ];
 
+// DASHBOARD DO ESTOQUE
 export default function EstoquePage() {
   return (
     <div className="flex min-h-screen bg-[#E1E4E9]">
-      {/* MENU LATERAL */}
-      <aside className="flex w-80 shrink-0 flex-col bg-[#F0F0F0] px-8 py-10">
-        {/* LOGOTIPO */}
-        <Link
-          href="/"
-          className="mb-20 text-3xl font-bold text-[#800000]"
-        >
-          HemoVida ♡
-        </Link>
-
-        {/* NAVEGAÇÃO */}
-        <nav className="flex flex-col gap-5">
-          <Link
-            href="/estoque"
-            className="rounded-lg bg-[#98D8E2] px-5 py-3 text-xl font-semibold text-[#203A60]"
-          >
-            ⌂ &nbsp; Início
-          </Link>
-
-          <Link
-            href="/estoque/consulta"
-            className="rounded-lg px-5 py-3 text-xl font-semibold text-[#203A60] hover:bg-gray-200"
-          >
-            ◇ &nbsp; Estoque
-          </Link>
-
-          <Link
-            href="/estoque/transacoes"
-            className="rounded-lg px-5 py-3 text-xl font-semibold text-[#203A60] hover:bg-gray-200"
-          >
-            ⇄ &nbsp; Transações
-          </Link>
-
-          <Link
-            href="/estoque/relatorios"
-            className="rounded-lg px-5 py-3 text-xl font-semibold text-[#203A60] hover:bg-gray-200"
-          >
-            ▤ &nbsp; Relatórios
-          </Link>
-        </nav>
-
-        {/* SAIR */}
-        <div className="mt-auto pt-16">
-          <Link
-            href="/"
-            className="px-5 py-3 text-xl font-medium text-[#800000]"
-          >
-            ⏻ &nbsp; Sair
-          </Link>
-        </div>
-      </aside>
+      {/* MENU COMPARTILHADO */}
+      <Sidebar />
 
       {/* CONTEÚDO PRINCIPAL */}
       <main className="min-w-0 flex-1 px-10 py-12">
-        {/* BARRA DE PESQUISA */}
+        {/* PESQUISA */}
         <div className="mb-10 flex overflow-hidden rounded-md border border-gray-300 bg-white">
           <input
             type="text"
@@ -121,16 +99,22 @@ export default function EstoquePage() {
           Aqui você acompanha o estoque e as transações do sistema
         </h1>
 
-        {/* INDICADORES */}
+        {/* INDICADORES SUPERIORES */}
         <section className="mb-16 grid grid-cols-4 gap-6">
           {indicadores.map((indicador) => (
             <div
               key={indicador.titulo}
               className="flex min-h-44 flex-col bg-white p-5"
             >
-              <span className="mb-3 text-3xl text-[#B32630]">
-                {indicador.icone}
-              </span>
+              <div className="mb-3 flex h-9 items-center text-[#B32630]">
+                {indicador.icone === "gota" ? (
+                  <IconeGota tamanho={30} />
+                ) : (
+                  <span className="text-3xl">
+                    {indicador.icone}
+                  </span>
+                )}
+              </div>
 
               <h2 className="min-h-12 text-sm font-semibold text-gray-800">
                 {indicador.titulo}
@@ -155,20 +139,21 @@ export default function EstoquePage() {
                 key={item.tipo}
                 className="flex min-h-36 flex-col items-center justify-center bg-white p-4"
               >
-                <div className="mb-2 flex items-center gap-3">
-                  <span className="text-2xl text-[#B32630]">
-                    ♧
-                  </span>
+                {/* GOTA E TIPO SANGUÍNEO À ESQUERDA */}
+                <div className="mb-2 flex w-full items-center justify-start gap-3 pl-5">
+                  <IconeGota tamanho={28} />
 
                   <span className="text-xl font-bold text-black">
                     {item.tipo}
                   </span>
                 </div>
 
+                {/* QUANTIDADE CENTRALIZADA */}
                 <p className="mb-3 text-xl font-semibold text-gray-800">
                   {item.quantidade}
                 </p>
 
+                {/* STATUS CENTRALIZADO */}
                 <span
                   className={`w-full rounded-full px-3 py-1 text-center text-sm font-semibold text-[#203A60] ${
                     item.status === "Adequado"

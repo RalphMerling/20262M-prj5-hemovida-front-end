@@ -1,7 +1,9 @@
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Sidebar from "@/components/Sidebar";
 
+// TIPOS DE DADOS
 type Status = "Disponível" | "Em uso" | "Vencida";
 
 type Movimento = {
@@ -22,18 +24,25 @@ type Bolsa = {
   historico: Movimento[];
 };
 
+// TIPOS SANGUÍNEOS
 const tiposSanguineos = [
-  "O+", "A+", "B+", "O-",
-  "AB+", "A-", "B-", "AB-",
+  "O+",
+  "A+",
+  "B+",
+  "O-",
+  "AB+",
+  "A-",
+  "B-",
+  "AB-",
 ];
 
-// FORMATAÇÃO DE DATA
+// FORMATAR DATA
 function formatarData(data: string) {
   const [ano, mes, dia] = data.split("-");
   return `${dia}/${mes}/${ano}`;
 }
 
-// DADOS SIMULADOS COMPATÍVEIS COM A LISTA
+// BUSCAR BOLSA SIMULADA
 function buscarBolsa(id: string): Bolsa | null {
   const numero = Number(id.replace("BOL-", ""));
 
@@ -56,6 +65,7 @@ function buscarBolsa(id: string): Bolsa | null {
   validade.setUTCDate(validade.getUTCDate() + 42);
 
   const hoje = new Date();
+
   const hojeUTC = Date.UTC(
     hoje.getFullYear(),
     hoje.getMonth(),
@@ -74,6 +84,7 @@ function buscarBolsa(id: string): Bolsa | null {
   const dataColeta = coleta.toISOString().slice(0, 10);
   const dataValidade = validade.toISOString().slice(0, 10);
 
+  // HISTÓRICO SIMULADO
   const historico: Movimento[] = [
     {
       data: dataEntrada,
@@ -104,7 +115,7 @@ function buscarBolsa(id: string): Bolsa | null {
   };
 }
 
-// COMPONENTE PARA CAMPOS DE CONSULTA
+// COMPONENTE DE CAMPO DE CONSULTA
 function CampoConsulta({
   titulo,
   valor,
@@ -130,6 +141,7 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
+// PÁGINA DE DETALHES DA BOLSA
 export default async function DetalhesBolsaPage({
   params,
 }: PageProps) {
@@ -151,66 +163,14 @@ export default async function DetalhesBolsaPage({
   return (
     <div className="flex min-h-screen bg-[#E1E4E9]">
 
-      {/* MENU LATERAL */}
-      <aside className="flex w-80 shrink-0 flex-col bg-[#F0F0F0] px-8 py-10">
-
-        {/* LOGOTIPO */}
-        <Link
-          href="/"
-          className="mb-20 text-3xl font-bold text-[#800000]"
-        >
-          HemoVida ♡
-        </Link>
-
-        {/* MENU DE NAVEGAÇÃO */}
-        <nav className="flex flex-col gap-5">
-
-          <Link
-            href="/estoque"
-            className="rounded-lg px-5 py-3 text-xl font-semibold text-[#203A60] hover:bg-gray-200"
-          >
-            ⌂ &nbsp; Início
-          </Link>
-
-          <Link
-            href="/estoque/consulta"
-            className="rounded-lg bg-[#98D8E2] px-5 py-3 text-xl font-semibold text-[#203A60]"
-          >
-            ◇ &nbsp; Estoque
-          </Link>
-
-          <Link
-            href="/estoque/transacoes"
-            className="rounded-lg px-5 py-3 text-xl font-semibold text-[#203A60] hover:bg-gray-200"
-          >
-            ⇄ &nbsp; Transações
-          </Link>
-
-          <Link
-            href="/estoque/relatorios"
-            className="rounded-lg px-5 py-3 text-xl font-semibold text-[#203A60] hover:bg-gray-200"
-          >
-            ▤ &nbsp; Relatórios
-          </Link>
-        </nav>
-
-        {/* SAIR */}
-        <div className="mt-auto pt-16">
-          <Link
-            href="/"
-            className="px-5 py-3 text-xl font-medium text-[#800000]"
-          >
-            ⏻ &nbsp; Sair
-          </Link>
-        </div>
-      </aside>
+      {/* MENU LATERAL COMPARTILHADO */}
+      <Sidebar />
 
       {/* CONTEÚDO PRINCIPAL */}
       <main className="flex min-w-0 flex-1 flex-col px-12 py-12">
 
-        {/* TÍTULO E VOLTAR */}
+        {/* TÍTULO E SETA VOLTAR */}
         <div className="mb-10 flex items-center gap-5">
-
           <Link
             href="/estoque/consulta"
             aria-label="Voltar para a lista de estoque"
@@ -263,7 +223,7 @@ export default async function DetalhesBolsaPage({
 
           <CampoConsulta
             titulo="Entrada no estoque"
-            valor={`${formatarData(bolsa.entrada)} às 09:20`}
+            valor={formatarData(bolsa.entrada)}
           />
         </section>
 
@@ -277,15 +237,28 @@ export default async function DetalhesBolsaPage({
           <div className="overflow-x-auto bg-white">
             <table className="w-full border-collapse text-center text-sm">
 
+              {/* CABEÇALHO */}
               <thead className="bg-[#D1E1F1] text-[#203A60]">
                 <tr>
-                  <th className="px-4 py-3">Data</th>
-                  <th className="px-4 py-3">Movimentação</th>
-                  <th className="px-4 py-3">Transação</th>
-                  <th className="px-4 py-3">Responsável</th>
+                  <th className="px-4 py-3">
+                    Data
+                  </th>
+
+                  <th className="px-4 py-3">
+                    Movimentação
+                  </th>
+
+                  <th className="px-4 py-3">
+                    Transação
+                  </th>
+
+                  <th className="px-4 py-3">
+                    Responsável
+                  </th>
                 </tr>
               </thead>
 
+              {/* REGISTROS */}
               <tbody>
                 {bolsa.historico.map((movimento, index) => (
                   <tr

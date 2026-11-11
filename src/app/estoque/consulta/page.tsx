@@ -2,9 +2,10 @@
 "use client";
 
 import Link from "next/link";
+import Sidebar from "@/components/Sidebar";
 import { useMemo, useState } from "react";
 
-// DADOS SIMULADOS DAS BOLSAS
+// TIPOS DE DADOS
 type Bolsa = {
   id: string;
   tipo: string;
@@ -14,55 +15,74 @@ type Bolsa = {
   volume: number;
 };
 
+// TIPOS SANGUÍNEOS
 const tipos = [
-  "O+", "A+", "B+", "O-",
-  "AB+", "A-", "B-", "AB-",
+  "O+",
+  "A+",
+  "B+",
+  "O-",
+  "AB+",
+  "A-",
+  "B-",
+  "AB-",
 ];
 
-// Geramos 46 registros para testar a consulta e a paginação.
-// Esses registros não representam o banco de dados real.
-const bolsas: Bolsa[] = Array.from({ length: 46 }, (_, i) => {
-  const numero = i + 1;
+// DADOS SIMULADOS DAS BOLSAS
+const bolsas: Bolsa[] = Array.from(
+  { length: 46 },
+  (_, i) => {
+    const numero = i + 1;
 
-  const entrada = new Date(Date.UTC(2026, 9, 1 + i));
-  const validade = new Date(entrada);
+    const entrada = new Date(
+      Date.UTC(2026, 9, numero)
+    );
 
-  validade.setUTCDate(validade.getUTCDate() + 42);
+    const validade = new Date(entrada);
+    validade.setUTCDate(
+      validade.getUTCDate() + 42
+    );
 
-  const hoje = new Date();
-  const dataAtual = Date.UTC(
-    hoje.getFullYear(),
-    hoje.getMonth(),
-    hoje.getDate()
-  );
+    const hoje = new Date();
 
-  let status: Bolsa["status"] = "Disponível";
+    const dataAtual = Date.UTC(
+      hoje.getFullYear(),
+      hoje.getMonth(),
+      hoje.getDate()
+    );
 
-  if (validade.getTime() < dataAtual) {
-    status = "Vencida";
-  } else if (numero % 6 === 0) {
-    status = "Em uso";
+    let status: Bolsa["status"] = "Disponível";
+
+    if (validade.getTime() < dataAtual) {
+      status = "Vencida";
+    } else if (numero % 6 === 0) {
+      status = "Em uso";
+    }
+
+    return {
+      id: `BOL-${String(numero).padStart(3, "0")}`,
+      tipo: tipos[i % tipos.length],
+      entrada: entrada.toISOString().slice(0, 10),
+      validade: validade.toISOString().slice(0, 10),
+      status,
+      volume: 450,
+    };
   }
-
-  return {
-    id: `BOL-${String(numero).padStart(3, "0")}`,
-    tipo: tipos[i % tipos.length],
-    entrada: entrada.toISOString().slice(0, 10),
-    validade: validade.toISOString().slice(0, 10),
-    status,
-    volume: 450,
-  };
-});
+);
 
 const ITENS_POR_PAGINA = 8;
 
+// FORMATAR DATA
 function formatarData(data: string) {
   const [ano, mes, dia] = data.split("-");
   return `${dia}/${mes}/${ano}`;
 }
 
 // ÍCONE DE PESQUISA
-function Lupa({ tamanho = 21 }: { tamanho?: number }) {
+function Lupa({
+  tamanho = 21,
+}: {
+  tamanho?: number;
+}) {
   return (
     <svg
       width={tamanho}
@@ -81,11 +101,12 @@ function Lupa({ tamanho = 21 }: { tamanho?: number }) {
   );
 }
 
+// PÁGINA DE CONSULTA DE ESTOQUE
 export default function ConsultaEstoquePage() {
   const [busca, setBusca] = useState("");
   const [paginaAtual, setPaginaAtual] = useState(1);
 
-  // FILTRO DE PESQUISA
+  // FILTRAR BOLSAS
   const bolsasFiltradas = useMemo(() => {
     const termo = busca.trim().toLowerCase();
 
@@ -99,18 +120,23 @@ export default function ConsultaEstoquePage() {
     });
   }, [busca]);
 
+  // PAGINAÇÃO
   const totalPaginas = Math.max(
     1,
-    Math.ceil(bolsasFiltradas.length / ITENS_POR_PAGINA)
+    Math.ceil(
+      bolsasFiltradas.length / ITENS_POR_PAGINA
+    )
   );
 
-  const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
+  const inicio =
+    (paginaAtual - 1) * ITENS_POR_PAGINA;
 
   const bolsasPagina = bolsasFiltradas.slice(
     inicio,
     inicio + ITENS_POR_PAGINA
   );
 
+  // ATUALIZAR BUSCA
   function atualizarBusca(valor: string) {
     setBusca(valor);
     setPaginaAtual(1);
@@ -119,59 +145,8 @@ export default function ConsultaEstoquePage() {
   return (
     <div className="flex min-h-screen bg-[#E1E4E9]">
 
-      {/* MENU LATERAL */}
-      <aside className="flex w-80 shrink-0 flex-col bg-[#F0F0F0] px-8 py-10">
-
-        {/* LOGOTIPO */}
-        <Link
-          href="/"
-          className="mb-20 text-3xl font-bold text-[#800000]"
-        >
-          HemoVida ♡
-        </Link>
-
-        {/* NAVEGAÇÃO */}
-        <nav className="flex flex-col gap-5">
-
-          <Link
-            href="/estoque"
-            className="rounded-lg px-5 py-3 text-xl font-semibold text-[#203A60] hover:bg-gray-200"
-          >
-            ⌂ &nbsp; Início
-          </Link>
-
-          <Link
-            href="/estoque/consulta"
-            className="rounded-lg bg-[#98D8E2] px-5 py-3 text-xl font-semibold text-[#203A60]"
-          >
-            ◇ &nbsp; Estoque
-          </Link>
-
-          <Link
-            href="/estoque/transacoes"
-            className="rounded-lg px-5 py-3 text-xl font-semibold text-[#203A60] hover:bg-gray-200"
-          >
-            ⇄ &nbsp; Transações
-          </Link>
-
-          <Link
-            href="/estoque/relatorios"
-            className="rounded-lg px-5 py-3 text-xl font-semibold text-[#203A60] hover:bg-gray-200"
-          >
-            ▤ &nbsp; Relatórios
-          </Link>
-        </nav>
-
-        {/* SAIR */}
-        <div className="mt-auto pt-16">
-          <Link
-            href="/"
-            className="px-5 py-3 text-xl font-medium text-[#800000]"
-          >
-            ⏻ &nbsp; Sair
-          </Link>
-        </div>
-      </aside>
+      {/* MENU LATERAL COMPARTILHADO */}
+      <Sidebar />
 
       {/* CONTEÚDO PRINCIPAL */}
       <main className="min-w-0 flex-1 px-10 py-12">
@@ -183,7 +158,9 @@ export default function ConsultaEstoquePage() {
             placeholder="Buscar por tipo sanguíneo, código da bolsa ou data de validade"
             aria-label="Buscar bolsas de sangue"
             value={busca}
-            onChange={(e) => atualizarBusca(e.target.value)}
+            onChange={(e) =>
+              atualizarBusca(e.target.value)
+            }
             className="w-full px-4 py-3 text-gray-700 outline-none"
           />
 
@@ -205,40 +182,68 @@ export default function ConsultaEstoquePage() {
         <div className="overflow-x-auto bg-white">
           <table className="w-full border-collapse text-center text-sm">
 
+            {/* CABEÇALHO */}
             <thead className="bg-[#D1E1F1] text-[#203A60]">
               <tr>
-                <th className="px-3 py-3">ID da Bolsa</th>
-                <th className="px-3 py-3">Tipo Sanguíneo</th>
-                <th className="px-3 py-3">Data da Entrada</th>
-                <th className="px-3 py-3">Data de Validade</th>
-                <th className="px-3 py-3">Status</th>
-                <th className="px-3 py-3">Volume (mL)</th>
-                <th className="px-3 py-3">Detalhes do item</th>
+                <th className="px-3 py-3">
+                  ID da Bolsa
+                </th>
+
+                <th className="px-3 py-3">
+                  Tipo Sanguíneo
+                </th>
+
+                <th className="px-3 py-3">
+                  Data da Entrada
+                </th>
+
+                <th className="px-3 py-3">
+                  Data de Validade
+                </th>
+
+                <th className="px-3 py-3">
+                  Status
+                </th>
+
+                <th className="px-3 py-3">
+                  Volume (mL)
+                </th>
+
+                <th className="px-3 py-3">
+                  Detalhes do item
+                </th>
               </tr>
             </thead>
 
+            {/* REGISTROS */}
             <tbody>
               {bolsasPagina.map((bolsa) => (
                 <tr
                   key={bolsa.id}
                   className="h-[66px] border-b border-gray-100 text-black hover:bg-gray-50"
                 >
+
+                  {/* ID DA BOLSA */}
                   <td className="px-3 font-semibold">
                     {bolsa.id}
                   </td>
 
+                  {/* TIPO SANGUÍNEO */}
                   <td className="px-3 font-semibold">
                     {bolsa.tipo}
                   </td>
 
+                  {/* DATA DE ENTRADA */}
                   <td className="px-3">
                     {formatarData(bolsa.entrada)}
                   </td>
 
+                  {/* DATA DE VALIDADE */}
                   <td className="px-3">
                     {formatarData(bolsa.validade)}
                   </td>
 
+                  {/* STATUS */}
                   <td className="px-3">
                     <span
                       className={`inline-block min-w-28 rounded-full px-3 py-2 font-medium text-[#203A60] ${
@@ -253,10 +258,12 @@ export default function ConsultaEstoquePage() {
                     </span>
                   </td>
 
+                  {/* VOLUME */}
                   <td className="px-3">
                     {bolsa.volume}
                   </td>
 
+                  {/* DETALHES */}
                   <td className="px-3">
                     <Link
                       href={`/estoque/consulta/${bolsa.id}`}
@@ -270,6 +277,7 @@ export default function ConsultaEstoquePage() {
                 </tr>
               ))}
 
+              {/* SEM RESULTADOS */}
               {bolsasPagina.length === 0 && (
                 <tr>
                   <td
@@ -288,18 +296,23 @@ export default function ConsultaEstoquePage() {
         <div className="mt-12 flex items-center justify-between">
 
           <div className="flex items-center gap-3">
+
+            {/* PÁGINA ANTERIOR */}
             <button
               type="button"
               onClick={() =>
-                setPaginaAtual((p) => Math.max(1, p - 1))
+                setPaginaAtual((p) =>
+                  Math.max(1, p - 1)
+                )
               }
               disabled={paginaAtual === 1}
-              className="px-2 text-xl text-black disabled:opacity-30"
               aria-label="Página anterior"
+              className="px-2 text-xl text-black disabled:opacity-30"
             >
               ‹
             </button>
 
+            {/* NÚMEROS DAS PÁGINAS */}
             {Array.from(
               { length: totalPaginas },
               (_, i) => i + 1
@@ -307,7 +320,15 @@ export default function ConsultaEstoquePage() {
               <button
                 key={pagina}
                 type="button"
-                onClick={() => setPaginaAtual(pagina)}
+                onClick={() =>
+                  setPaginaAtual(pagina)
+                }
+                aria-label={`Página ${pagina}`}
+                aria-current={
+                  paginaAtual === pagina
+                    ? "page"
+                    : undefined
+                }
                 className={`rounded px-2 py-1 text-sm font-semibold ${
                   paginaAtual === pagina
                     ? "bg-blue-600 text-white"
@@ -318,6 +339,7 @@ export default function ConsultaEstoquePage() {
               </button>
             ))}
 
+            {/* PRÓXIMA PÁGINA */}
             <button
               type="button"
               onClick={() =>
@@ -326,15 +348,18 @@ export default function ConsultaEstoquePage() {
                 )
               }
               disabled={paginaAtual === totalPaginas}
-              className="px-2 text-xl text-black disabled:opacity-30"
               aria-label="Próxima página"
+              className="px-2 text-xl text-black disabled:opacity-30"
             >
               ›
             </button>
           </div>
 
+          {/* CONTADOR */}
           <p className="text-sm font-semibold text-black">
-            {bolsasFiltradas.length === 0 ? 0 : inicio + 1}
+            {bolsasFiltradas.length === 0
+              ? 0
+              : inicio + 1}
             {" - "}
             {Math.min(
               inicio + ITENS_POR_PAGINA,
