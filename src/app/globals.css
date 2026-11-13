@@ -1,26 +1,48 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* CORES.
+   --color-vermelho-1 vira as classes bg-vermelho-1, text-vermelho-1, etc. */
+@theme {
+  --color-vermelho-1: #ad2831; /* identidade, botões do Portal do Doador */
+  --color-vermelho-2: #800e13; /* hover dos botões primários, textos e detalhes */
+  --color-vermelho-3: #250902; /* texto de alto contraste sobre fundo vermelho */
+  --color-azul-1: #1f375d; /* hover de ações, títulos e detalhes */
+  --color-azul-2: #0c4c8a; /* ações do sistema (edição, buscas) e links */
+  --color-azul-3: #99d5e0; /* fundos sutis, tags informativas, botões */
+  --color-preto: #282828; /* títulos e corpo de texto (sem preto puro) */
+  --color-branco: #f0f0f0; /* cards, textos claros */
+  --color-cinza-azulado: #e1e4e9; /* fundo geral do painel */
+  --color-card: #ffffff; /* cards e campos: branco puro, como nos wireframes */
+
+  /* FONTES */
+  --font-titulo: var(--font-lexend), sans-serif; /* H1, H2, H3 */
+  --font-apoio: var(--font-manrope), sans-serif; /* H4 */
+  --font-corpo: var(--font-onest), sans-serif; /* texto e legendas */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    color-scheme: light;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    background-color: var(--color-branco);
+    color: var(--color-preto);
+    font-family: var(--font-corpo);
+    font-weight: 400;
+  }
+
+  /* H1, H2 e H3: Lexend Deca semibold */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-titulo);
+    font-weight: 600;
+  }
+
+  /* H4: Manrope bold */
+  h4 {
+    font-family: var(--font-apoio);
+    font-weight: 700;
+  }
 }
