@@ -9,14 +9,12 @@ interface ModalProps {
   aoFechar: () => void;
   titulo: string;
   children: ReactNode;
-  // Opcionais, usados pelas janelas de confirmação: um ícone em cima, tudo centralizado e uma caixa menor.
   icone?: ReactNode;
   pequeno?: boolean;
+  grande?: boolean;
 }
 
-// Janela por cima da tela. Usa o <dialog> do navegador, que já faz o fundo escurecer,
-// prende o foco do teclado dentro dela e fecha com a tecla Esc. A página decide quando abre.
-export function Modal({ aberto, aoFechar, titulo, children, icone, pequeno = false }: ModalProps) {
+export function Modal({ aberto, aoFechar, titulo, children, icone, pequeno = false, grande = false }: ModalProps) {
   const dialogo = useRef<HTMLDialogElement>(null);
   const idDoTitulo = useId();
 
@@ -27,21 +25,20 @@ export function Modal({ aberto, aoFechar, titulo, children, icone, pequeno = fal
     if (!aberto && elemento.open) elemento.close();
   }, [aberto]);
 
+  const largura = grande ? "max-w-5xl" : pequeno ? "max-w-md" : "max-w-xl";
+
   return (
     <dialog
       ref={dialogo}
       aria-labelledby={idDoTitulo}
-      // O navegador avisa "fechou" também quando NÓS fechamos (aberto = false).
-      // Só repassamos o aviso quando foi a pessoa que fechou (Esc), senão ele dispararia duas vezes.
       onClose={() => {
         if (aberto) aoFechar();
       }}
-      // Clicar no fundo escuro (fora da caixa) também fecha.
+      // Clicar fora da caixa também fecha.
       onClick={(evento) => {
         if (evento.target === dialogo.current) aoFechar();
       }}
-      // m-auto: o reset do Tailwind zera a margem e o <dialog> iria para o canto.
-      className={`m-auto w-full rounded-xl bg-card p-0 backdrop:bg-black/50 ${pequeno ? "max-w-md" : "max-w-xl"}`}
+      className={`m-auto w-full rounded-xl bg-card p-0 backdrop:bg-black/50 ${largura}`}
     >
       <div className={`relative p-8 ${icone ? "text-center" : ""}`}>
         <button
