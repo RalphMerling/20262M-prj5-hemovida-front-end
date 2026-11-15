@@ -6,11 +6,14 @@ import type { FormEvent } from "react";
 import { EditarDoadorModal } from "@/components/doador/EditarDoadorModal";
 import type { DadosEditaveis } from "@/components/doador/EditarDoadorModal";
 import { FichaDoador } from "@/components/doador/FichaDoador";
+import { FormularioCadastro } from "@/components/doador/FormularioCadastro";
+import type { DadosCadastro } from "@/components/doador/FormularioCadastro";
 import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EstadoVazio } from "@/components/ui/EstadoVazio";
+import { Modal } from "@/components/ui/Modal";
 import { doadoresMock } from "@/data/mock";
 import type { DoadorComHistorico, ItemHistorico } from "@/data/mock";
 import { formatarDataBR } from "@/lib/formatadores";
@@ -31,6 +34,7 @@ export default function Recepcao() {
   const [diasDeEspera, setDiasDeEspera] = useState(0);
   const [doacaoAberta, setDoacaoAberta] = useState(false);
   const [editando, setEditando] = useState(false);
+  const [cadastrando, setCadastrando] = useState(false);
   const [mensagem, setMensagem] = useState<Mensagem | null>(null);
 
   function buscar(evento: FormEvent<HTMLFormElement>) {
@@ -74,6 +78,13 @@ export default function Recepcao() {
     setMensagem({ tipo: "sucesso", texto: "Dados do doador atualizados." });
   }
 
+  function cadastrarDoador(dados: DadosCadastro) {
+    // TODO: com a API, criar o doador e depois abrir a ficha dele aqui (buscarPorCpf).
+    setCadastrando(false);
+    setErroBusca("");
+    setMensagem({ tipo: "sucesso", texto: `Doador ${dados.nome} cadastrado com sucesso.` });
+  }
+
   const podeDoar = encontrado !== null && encontrado.doador.doador_status === 1 && diasDeEspera === 0;
 
   return (
@@ -110,8 +121,9 @@ export default function Recepcao() {
             )}
           </div>
 
-          {/* TODO: abrir o cadastro feito pela recepção (mesmo formulário do portal, perfil RECEPCAO). */}
-          <Button variante="suave">Cadastrar novo doador</Button>
+          <Button variante="suave" onClick={() => setCadastrando(true)}>
+            Cadastrar novo doador
+          </Button>
         </div>
       </Card>
 
@@ -121,7 +133,7 @@ export default function Recepcao() {
         </div>
       )}
 
-    {!encontrado && (
+      {!encontrado && (
         <EstadoVazio
           className="md:col-span-3"
           icone={<UserSearch size={32} />}
@@ -195,6 +207,11 @@ export default function Recepcao() {
       {encontrado && editando && (
         <EditarDoadorModal doador={encontrado.doador} aoSalvar={salvarEdicao} aoFechar={() => setEditando(false)} />
       )}
+
+      <Modal aberto={cadastrando} aoFechar={() => setCadastrando(false)} titulo="Cadastrar novo doador" grande>
+        {/* Só monta o formulário com a janela aberta, assim ele sempre começa vazio */}
+        {cadastrando && <FormularioCadastro modo="recepcao" aoCadastrar={cadastrarDoador} />}
+      </Modal>
     </div>
   );
 }

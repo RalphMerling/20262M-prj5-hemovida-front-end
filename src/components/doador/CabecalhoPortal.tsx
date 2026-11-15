@@ -37,13 +37,13 @@ export function CabecalhoPortal({ avisos }: { avisos: Aviso[] }) {
       <Logo />
 
       <div className="flex items-center gap-3">
-        <button
-          type="button"
+        <Link
+          href="/doador/perfil"
           aria-label="Meu perfil"
           className="flex h-10 w-10 items-center justify-center rounded-full bg-preto text-branco"
         >
           <User size={18} />
-        </button>
+        </Link>
 
         <div ref={areaDoSino} className="relative">
           <button
