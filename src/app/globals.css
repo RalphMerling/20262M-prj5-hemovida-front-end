@@ -46,3 +46,24 @@
     font-weight: 700;
   }
 }
+
+/* Animação do tubo da home: sobe e desce devagar */
+@keyframes flutuar {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-16px) rotate(2deg);
+  }
+}
+
+.animar-flutuar {
+  animation: flutuar 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animar-flutuar {
+    animation: none;
+  }
+}
