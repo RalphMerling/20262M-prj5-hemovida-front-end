@@ -67,3 +67,38 @@
     animation: none;
   }
 }
+
+/* Gota de carregamento: o nível sobe e a onda balança */
+@keyframes encher {
+  0% {
+    transform: translateY(110px);
+  }
+  85%,
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes balancar {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50px);
+  }
+}
+
+.gota-nivel {
+  animation: encher 3.5s ease-in-out infinite;
+}
+
+.gota-onda {
+  animation: balancar 1s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gota-nivel,
+  .gota-onda {
+    animation: none;
+  }
+}

@@ -54,9 +54,10 @@ export default function HomePage() {
     <div className="min-h-screen bg-branco">
       {/* Cabeçalho fixo no topo */}
       <header className="sticky top-0 z-40 border-b border-preto/5 bg-branco/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-8 sm:py-4">
           <Logo />
 
+          {/* Computador: o menu fica no meio do cabeçalho */}
           <nav aria-label="Principal" className="hidden items-center gap-8 md:flex">
             {menu.map((item) => (
               <Link
@@ -69,21 +70,34 @@ export default function HomePage() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/doador/login"
-              className="rounded-full border-2 border-preto px-5 py-1.5 text-sm font-semibold text-preto transition hover:bg-preto hover:text-branco"
+              className="rounded-full border-2 border-preto px-4 py-1 text-xs font-semibold text-preto transition hover:bg-preto hover:text-branco sm:px-5 sm:py-1.5 sm:text-sm"
             >
               Login
             </Link>
             <Link
               href="/doador/cadastro"
-              className="rounded-full bg-vermelho-1 px-5 py-2 text-sm font-semibold text-branco transition hover:bg-vermelho-2"
+              className="rounded-full bg-vermelho-1 px-4 py-1.5 text-xs font-semibold text-branco transition hover:bg-vermelho-2 sm:px-5 sm:py-2 sm:text-sm"
             >
               Cadastre-se
             </Link>
           </div>
         </div>
+
+        {/* Celular: o menu vira uma segunda linha, que rola de lado se faltar espaço */}
+        <nav aria-label="Principal" className="flex gap-6 overflow-x-auto px-4 pb-3 md:hidden">
+          {menu.map((item) => (
+            <Link
+              key={item.rotulo}
+              href={item.href}
+              className="whitespace-nowrap text-sm font-semibold text-preto transition hover:text-vermelho-1"
+            >
+              {item.rotulo}
+            </Link>
+          ))}
+        </nav>
       </header>
 
       <main>
@@ -114,12 +128,11 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Imagem decorativa: círculo suave atrás, tubo 3D na frente */}
+          {/* Círculo suave atrás, tubo 3D na frente */}
           <div aria-hidden className="relative mx-auto flex h-[26rem] w-full max-w-md items-center justify-center lg:ml-auto lg:mr-0">
             <div className="absolute h-80 w-80 rounded-full bg-vermelho-1/10 sm:h-96 sm:w-96" />
             <div className="absolute hidden h-[26rem] w-[26rem] rounded-full border border-vermelho-1/15 sm:block" />
 
-            {/* O de fora flutua. O de dentro reage ao mouse. Separados para uma animação não brigar com a outra. */}
             <div className="animar-flutuar relative">
               <div className="transition-transform duration-500 hover:-rotate-3 hover:scale-105">
                 <Image

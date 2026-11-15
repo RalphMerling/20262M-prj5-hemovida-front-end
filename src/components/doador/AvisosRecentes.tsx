@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { EstadoVazio } from "@/components/ui/EstadoVazio";
 import { Modal } from "@/components/ui/Modal";
 import { ListaAvisos } from "@/components/doador/ListaAvisos";
 import { formatarDataBR } from "@/lib/formatadores";
 import type { Aviso } from "@/models/portal";
 
+// Mostra só o aviso mais recente. O resto fica numa janelinha, atrás do botão.
 export function AvisosRecentes({ avisos }: { avisos: Aviso[] }) {
   const [listaAberta, setListaAberta] = useState(false);
-  const maisRecente = avisos[0];
+  const maisRecente = avisos[0]; // a lista já vem do mais novo para o mais antigo
   const naoLidos = avisos.filter((aviso) => !aviso.lida).length;
 
   return (
@@ -25,30 +28,34 @@ export function AvisosRecentes({ avisos }: { avisos: Aviso[] }) {
       </div>
 
       {maisRecente ? (
-        <div className="flex-1">
-          <div className="flex items-baseline justify-between gap-2">
-            <p className="text-sm font-semibold">{maisRecente.titulo}</p>
-            <time dateTime={maisRecente.dataEnvio} className="shrink-0 text-xs text-preto/50">
-              {formatarDataBR(maisRecente.dataEnvio)}
-            </time>
+        <>
+          <div className="flex-1">
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="text-sm font-semibold">{maisRecente.titulo}</p>
+              <time dateTime={maisRecente.dataEnvio} className="shrink-0 text-xs text-preto/50">
+                {formatarDataBR(maisRecente.dataEnvio)}
+              </time>
+            </div>
+            <p className="mt-1 line-clamp-3 text-sm text-preto/70">{maisRecente.mensagem}</p>
           </div>
-          <p className="mt-1 line-clamp-3 text-sm text-preto/70">{maisRecente.mensagem}</p>
-        </div>
+
+          <Button variante="cancelar" tamanho="sm" className="mt-3 w-full" onClick={() => setListaAberta(true)}>
+            Ver todos os avisos
+          </Button>
+
+          <Modal aberto={listaAberta} aoFechar={() => setListaAberta(false)} titulo="Avisos">
+            <div className="max-h-[60vh] overflow-y-auto">
+              <ListaAvisos avisos={avisos} />
+            </div>
+          </Modal>
+        </>
       ) : (
-        <p className="flex-1 text-sm text-preto/60">Você não tem avisos por enquanto.</p>
+        <EstadoVazio
+          icone={<Bell size={32} />}
+          titulo="Nenhum aviso por enquanto"
+          texto="Resultados de exames e novidades do hemocentro vão aparecer aqui."
+        />
       )}
-
-      {avisos.length > 0 && (
-        <Button variante="cancelar" tamanho="sm" className="mt-3 w-full" onClick={() => setListaAberta(true)}>
-          Ver todos os avisos
-        </Button>
-      )}
-
-      <Modal aberto={listaAberta} aoFechar={() => setListaAberta(false)} titulo="Avisos">
-        <div className="max-h-[60vh] overflow-y-auto">
-          <ListaAvisos avisos={avisos} />
-        </div>
-      </Modal>
     </Card>
   );
 }
