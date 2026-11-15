@@ -9,23 +9,32 @@ import { FichaDoador } from "@/components/doador/FichaDoador";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import type { Doador } from "@/models/doador";
+import { mensagemDoErro } from "@/services/api";
+import { atualizarDoador } from "@/services/doadoresService";
 
 interface PerfilDoadorProps {
   doador: Doador;
   ultimaDoacao: string | null;
 }
 
+type Mensagem = { tipo: "erro" | "sucesso"; texto: string };
+
 // Tela "Meu perfil": o doador vê seus dados e pode editar.
 export function PerfilDoador({ doador: doadorInicial, ultimaDoacao }: PerfilDoadorProps) {
   const [doador, setDoador] = useState(doadorInicial);
   const [editando, setEditando] = useState(false);
-  const [salvou, setSalvou] = useState(false);
+  const [mensagem, setMensagem] = useState<Mensagem | null>(null);
 
-  function salvarEdicao(dados: DadosEditaveis) {
-    // TODO: doadoresService.atualizar(id, dados) quando a API estiver conectada.
-    setDoador((atual) => ({ ...atual, ...dados }));
-    setEditando(false);
-    setSalvou(true);
+  async function salvarEdicao(dados: DadosEditaveis) {
+    try {
+      const atualizado = await atualizarDoador(doador.doador_id, dados);
+      setDoador(atualizado);
+      setMensagem({ tipo: "sucesso", texto: "Seus dados foram atualizados." });
+    } catch (erro) {
+      setMensagem({ tipo: "erro", texto: mensagemDoErro(erro) });
+    } finally {
+      setEditando(false);
+    }
   }
 
   return (
@@ -37,7 +46,7 @@ export function PerfilDoador({ doador: doadorInicial, ultimaDoacao }: PerfilDoad
 
       <h1 className="text-3xl text-preto">Meu perfil</h1>
 
-      {salvou && <Alert tipo="sucesso">Seus dados foram atualizados.</Alert>}
+      {mensagem && <Alert tipo={mensagem.tipo}>{mensagem.texto}</Alert>}
 
       <FichaDoador
         doador={doador}
