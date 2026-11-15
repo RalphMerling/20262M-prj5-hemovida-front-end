@@ -6,12 +6,12 @@ import type { Doador } from "@/models/doador";
 
 interface FichaDoadorProps {
   doador: Doador;
-  ultimaDoacao: string | null; // AAAA-MM-DD, ou null se nunca doou
+  ultimaDoacao: string | null;
   acoes: ReactNode;
   className?: string;
 }
 
-// Cartão com todos os dados do doador (a "ficha" que a recepção confere).
+// A "ficha" que a recepção confere
 export function FichaDoador({ doador, ultimaDoacao, acoes, className = "" }: FichaDoadorProps) {
   const campos: { rotulo: string; valor: ReactNode }[] = [
     { rotulo: "Nome completo", valor: doador.doador_nome },
