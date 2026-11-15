@@ -37,9 +37,9 @@ const colunasFila: Coluna<PacienteNaFila>[] = [
   {
     titulo: "Ações",
     largura: "28%",
-    render: () => (
+    render: (p) => (
       <span className="flex items-center gap-2">
-        <ButtonLink href="/admin/triagem" tamanho="sm">
+        <ButtonLink href={`/admin/triagem?id=${p.id}`} tamanho="sm">
           Iniciar triagem
         </ButtonLink>
         <Button variante="cancelar" tamanho="sm" aria-label="Cancelar" title="Cancelar">
