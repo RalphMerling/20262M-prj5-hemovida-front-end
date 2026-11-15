@@ -20,7 +20,7 @@ function Linha({ rotulo, children }: { rotulo: string; children: ReactNode }) {
 }
 
 interface CabecalhoPacienteProps {
-  doador: Doador;
+    doador: Pick<Doador, "doador_nome" | "doador_cpf" | "doador_data_nascimento" | "doador_tipo_sanguineo" | "doador_fator_rh">;
   destaque?: ReactNode;
   mostrarTipoSanguineo?: boolean;
   className?: string;

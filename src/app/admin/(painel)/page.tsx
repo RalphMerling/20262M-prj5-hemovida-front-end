@@ -1,6 +1,6 @@
 import { ClipboardPlus, Hourglass, Stethoscope } from "lucide-react";
-import { BannerSaudacao } from "@/components/admin/BannerSaudacao";
-import { PainelFila } from "@/components/admin/PainelFila";
+import { BannerSaudacao } from "@/components/painel/BannerSaudacao";
+import { PainelFila } from "@/components/painel/PainelFila";
 import { Card } from "@/components/ui/Card";
 import { CartaoNumero } from "@/components/ui/CartaoNumero";
 import { Rosquinha } from "@/components/ui/Rosquinha";

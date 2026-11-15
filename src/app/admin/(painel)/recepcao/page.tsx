@@ -3,9 +3,9 @@
 import { CheckCircle2, Clock, Search, UserSearch } from "lucide-react";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { EditarDoadorModal } from "@/components/admin/EditarDoadorModal";
-import type { DadosEditaveis } from "@/components/admin/EditarDoadorModal";
-import { FichaDoador } from "@/components/admin/FichaDoador";
+import { EditarDoadorModal } from "@/components/doador/EditarDoadorModal";
+import type { DadosEditaveis } from "@/components/doador/EditarDoadorModal";
+import { FichaDoador } from "@/components/doador/FichaDoador";
 import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
