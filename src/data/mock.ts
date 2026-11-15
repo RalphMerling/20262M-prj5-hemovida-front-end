@@ -8,6 +8,7 @@
 // =====================================================================
 import type { Doador } from "@/models/doador";
 import type { PerguntaTriagem } from "@/models/triagem";
+import type { Aviso, DoacaoDoHistorico } from "@/models/portal";
 
 // ===================== MS1 DOADORES (Bia) =====================
 export interface PacienteNaFila {
@@ -133,6 +134,32 @@ export const perguntasTriagemMock: PerguntaTriagem[] = [
   { id: 4, descricao: "Passou por procedimento dentário recente ou cirurgia nos últimos 6 meses?" },
   { id: 5, descricao: "Já teve diagnóstico de hepatite (após os 11 anos), HIV, doença de Chagas, sífilis ou diabetes insulino-dependente?" },
   { id: 6, descricao: "Está grávida, em período pós-parto (menos de 3 a 6 meses) ou amamentando bebê menor de 12 meses?" },
+];
+
+// ---------- Portal do doador ----------
+
+// O doador que está logado no portal (por enquanto fixo; depois vem do login).
+export const doadorLogadoMock: Doador = {
+  doador_id: 20, usuario_id: 20, doador_nome: "Ana Beatriz Lima", doador_cpf: "33344455566",
+  doador_data_nascimento: "2000-02-19", doador_genero: "Feminino", doador_tipo_sanguineo: "O", doador_fator_rh: "+",
+  doador_telefone: "21999990000", doador_email: "ana.lima@email.com", doador_cep: "20030000",
+  doador_endereco: "Rua da Carioca, 20, Centro, Rio de Janeiro - RJ", doador_status: 1,
+};
+
+export const historicoDoadorMock: DoacaoDoHistorico[] = [
+  { id: 1, tipo: "Sangue Total", data: "2026-09-02", statusExame: "Em análise", resultadoExame: "Pendente" },
+  { id: 2, tipo: "Sangue Total", data: "2026-02-13", statusExame: "Disponível", resultadoExame: "Apto" },
+  { id: 3, tipo: "Aférese", data: "2025-08-08", statusExame: "Disponível", resultadoExame: "Apto" },
+  { id: 4, tipo: "Sangue Total", data: "2025-02-13", statusExame: "Disponível", resultadoExame: "Apto" },
+  { id: 5, tipo: "Sangue Total", data: "2024-08-10", statusExame: "Disponível", resultadoExame: "Apto" },
+  { id: 6, tipo: "Sangue Total", data: "2024-02-09", statusExame: "Disponível", resultadoExame: "Apto" },
+];
+
+export const avisosMock: Aviso[] = [
+  { id: 1, titulo: "Resultado em análise", mensagem: "Sua doação de 02/09/2026 está em análise. Avisaremos quando o laudo ficar disponível.", dataEnvio: "2026-09-03", lida: false },
+  { id: 2, titulo: "Obrigada por doar!", mensagem: "Sua doação de sangue total foi registrada com sucesso.", dataEnvio: "2026-09-02", lida: false },
+  { id: 3, titulo: "Estoque baixo de O negativo", mensagem: "O hemocentro precisa de doadores O-. Convide um amigo para doar.", dataEnvio: "2026-08-20", lida: true },
+  { id: 4, titulo: "Você já pode doar novamente", mensagem: "O intervalo desde a sua última doação já passou. Venha nos visitar!", dataEnvio: "2026-05-15", lida: true },
 ];
 
 

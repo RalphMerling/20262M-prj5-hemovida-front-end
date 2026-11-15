@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import type { Doador, Genero } from "@/models/doador";
 
-// Só estes 4 campos podem ser editados na recepção.
 export type DadosEditaveis = Pick<Doador, "doador_email" | "doador_endereco" | "doador_telefone" | "doador_genero">;
 
 interface EditarDoadorModalProps {
@@ -19,8 +18,6 @@ interface EditarDoadorModalProps {
 
 const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// A página só coloca este componente na tela quando a edição está aberta.
-// Por isso os campos sempre começam com os dados atuais do doador.
 export function EditarDoadorModal({ doador, aoSalvar, aoFechar }: EditarDoadorModalProps) {
   const [email, setEmail] = useState(doador.doador_email);
   const [endereco, setEndereco] = useState(doador.doador_endereco);
