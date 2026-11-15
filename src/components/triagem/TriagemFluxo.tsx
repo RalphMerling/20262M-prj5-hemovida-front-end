@@ -13,8 +13,8 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Stepper } from "@/components/ui/Stepper";
 import { perguntasTriagemMock } from "@/data/mock";
 import type { PacienteNaFila } from "@/data/mock";
+import { resumoDoPaciente } from "@/lib/paciente";
 import { avaliarTriagem } from "@/lib/triagem";
-import type { Doador } from "@/models/doador";
 import type { Respostas, SinaisVitais } from "@/models/triagem";
 
 const NOMES_DOS_PASSOS = ["Sinais Vitais", "Questionário", "Resultado"];
@@ -29,13 +29,6 @@ export function TriagemFluxo({ paciente }: { paciente: PacienteNaFila }) {
   const [sinais, setSinais] = useState<SinaisVitais>({ peso: "", pressao: "", hemoglobina: "" });
   const [respostas, setRespostas] = useState<Respostas>({});
   const [cancelando, setCancelando] = useState(false);
-  const doador = {
-    doador_nome: paciente.nome,
-    doador_cpf: paciente.cpf.replace(/\D/g, ""),
-    doador_data_nascimento: paciente.dataNascimento,
-    doador_tipo_sanguineo: paciente.tipoSanguineo.slice(0, -1) as Doador["doador_tipo_sanguineo"],
-    doador_fator_rh: paciente.tipoSanguineo.slice(-1) as Doador["doador_fator_rh"],
-  };
 
   const resultado = avaliarTriagem(sinais, paciente.genero, perguntasTriagemMock, respostas);
 
@@ -44,7 +37,7 @@ export function TriagemFluxo({ paciente }: { paciente: PacienteNaFila }) {
   }
 
   function finalizar() {
-    // Apto segue para a Doação (próxima tela). Inapto volta para o Início.
+    // Apto segue para a Doação. Inapto volta para o Início.
     router.push(resultado.apto ? `/admin/doacao?id=${paciente.id}` : "/admin");
   }
 
@@ -58,7 +51,7 @@ export function TriagemFluxo({ paciente }: { paciente: PacienteNaFila }) {
       </div>
 
       <CabecalhoPaciente
-        doador={doador}
+        doador={resumoDoPaciente(paciente)}
         mostrarTipoSanguineo={false}
         destaque={<CaixaDestaque rotulo="Tipo sanguíneo">{paciente.tipoSanguineo}</CaixaDestaque>}
       />
