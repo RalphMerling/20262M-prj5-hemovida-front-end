@@ -1,10 +1,25 @@
+
 import type { Perfil } from "@/models/perfil";
 
 export interface ItemMenu {
   rotulo: string;
   href: string;
-  icone: "inicio" | "recepcao" | "triagem" | "doacao";
+
+  // MS2 - ESTOQUE: adicionados os ícones do módulo
+  icone:
+    | "inicio"
+    | "recepcao"
+    | "triagem"
+    | "doacao"
+    | "estoque" //MS Estoque
+    | "transacoes" //MS Estoque
+    | "relatorios"; //MS Estoque
 }
+
+// ======================================================
+// MS2 DOAÇÃO
+// Menus dos módulos administrativos
+// ======================================================
 
 const inicio: ItemMenu = { rotulo: "Início", href: "/admin", icone: "inicio" };
 const recepcao: ItemMenu = { rotulo: "Recepção", href: "/admin/recepcao", icone: "recepcao" };
@@ -18,3 +33,35 @@ export const MENU_POR_PERFIL: Partial<Record<Perfil, ItemMenu[]>> = {
   RECEPCAO: [inicio, recepcao],
   ENFERMAGEM: [inicio, triagem, doacao],
 };
+
+// ======================================================
+// INÍCIO - MS2 ESTOQUE
+// Menu de navegação do microserviço de Estoque
+// ======================================================
+
+export const MENU_ESTOQUE: ItemMenu[] = [
+  {
+    rotulo: "Início",
+    href: "/",
+    icone: "inicio",
+  },
+  {
+    rotulo: "Estoque",
+    href: "/estoque",
+    icone: "estoque",
+  },
+  {
+    rotulo: "Transações",
+    href: "/estoque/transacoes",
+    icone: "transacoes",
+  },
+  {
+    rotulo: "Relatórios",
+    href: "/estoque/relatorios",
+    icone: "relatorios",
+  },
+];
+
+// ======================================================
+// FIM - MS2 ESTOQUE
+// ======================================================
