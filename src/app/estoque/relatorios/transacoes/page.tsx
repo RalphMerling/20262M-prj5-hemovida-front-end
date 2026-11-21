@@ -4,7 +4,20 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import Sidebar from "@/components/Sidebar";
+
+// ======================================================
+// INÍCIO - MS2 ESTOQUE
+// Integração com os componentes compartilhados da Bia
+// ======================================================
+
+import { MENU_ESTOQUE } from "@/auth/menus";
+import { Sidebar } from "@/components/layout/Sidebar";
+import {
+  Button,
+  ButtonLink,
+} from "@/components/ui/Button";
+
+// FIM - MS2 ESTOQUE
 
 // TIPOS DE DADOS
 type TipoMovimentacao = "Entrada" | "Saída";
@@ -56,6 +69,8 @@ const distribuicaoDiaria = [
 ];
 
 // GERAR REGISTROS SIMULADOS
+// MS2 ESTOQUE: mantida a lógica original,
+// com 28 entradas e 40 saídas.
 const transacoes: Transacao[] = [];
 
 let contador = 0;
@@ -65,7 +80,6 @@ distribuicaoDiaria.forEach((dia) => {
     const indice = contador;
     contador++;
 
-    // 28 ENTRADAS E 40 SAÍDAS
     const movimentacao: TipoMovimentacao =
       indice % 17 < 7 ? "Entrada" : "Saída";
 
@@ -90,13 +104,24 @@ distribuicaoDiaria.forEach((dia) => {
   }
 });
 
+// ======================================================
+// MS2 ESTOQUE
+// Usuário provisório até a integração da autenticação
+// ======================================================
+
+const usuarioEstoque = {
+  nome: "Usuário de teste",
+  cargo: "Estoque",
+};
+
 // FORMATAR DATA
-function formatarData(data: string) {
+function formatarData(data: string): string {
   const [ano, mes, dia] = data.split("-");
   return `${dia}/${mes}`;
 }
 
 // GRÁFICO DE ROSCA
+// Mantida a distribuição de Entradas e Saídas.
 function GraficoRosca({
   entradas,
   saidas,
@@ -136,12 +161,14 @@ function GraficoRosca({
 
   return (
     <div className="flex flex-col items-center">
+
       <svg
         viewBox="0 0 220 220"
         className="h-[230px] w-[230px]"
         role="img"
         aria-label={`Entradas: ${entradas}; Saídas: ${saidas}`}
       >
+
         {/* CÍRCULO DE FUNDO */}
         <circle
           cx="110"
@@ -205,7 +232,7 @@ function GraficoRosca({
         {legenda.map((item) => (
           <div
             key={item.nome}
-            className="flex items-center gap-3 text-sm text-black"
+            className="flex items-center gap-3 text-sm text-preto"
           >
             <span
               className="h-4 w-4 rounded-full"
@@ -220,7 +247,9 @@ function GraficoRosca({
 
             <span className="font-medium">
               {total > 0
-                ? Math.round((item.valor / total) * 100)
+                ? Math.round(
+                    (item.valor / total) * 100
+                  )
                 : 0}
               %
             </span>
@@ -232,6 +261,7 @@ function GraficoRosca({
 }
 
 // GRÁFICO DE BARRAS
+// Mantido o gráfico de transações por data.
 function GraficoBarras({
   dados,
 }: {
@@ -244,9 +274,7 @@ function GraficoBarras({
 
   const valorMaximo = Math.max(
     20,
-    ...dados.map(
-      (item) => item.quantidade
-    )
+    ...dados.map((item) => item.quantidade)
   );
 
   const limiteEixo =
@@ -263,13 +291,11 @@ function GraficoBarras({
             height: alturaMaxima,
           }}
         >
-          {[4, 3, 2, 1, 0].map(
-            (indice) => (
-              <span key={indice}>
-                {(limiteEixo / 4) * indice}
-              </span>
-            )
-          )}
+          {[4, 3, 2, 1, 0].map((indice) => (
+            <span key={indice}>
+              {(limiteEixo / 4) * indice}
+            </span>
+          ))}
         </div>
 
         {/* ÁREA DO GRÁFICO */}
@@ -281,25 +307,22 @@ function GraficoBarras({
         >
 
           {/* LINHAS HORIZONTAIS */}
-          {[0, 25, 50, 75, 100].map(
-            (posicao) => (
-              <div
-                key={posicao}
-                className="absolute left-0 right-0 border-t border-gray-300"
-                style={{
-                  top: `${posicao}%`,
-                }}
-              />
-            )
-          )}
+          {[0, 25, 50, 75, 100].map((posicao) => (
+            <div
+              key={posicao}
+              className="absolute left-0 right-0 border-t border-gray-300"
+              style={{
+                top: `${posicao}%`,
+              }}
+            />
+          ))}
 
           {/* BARRAS */}
           <div className="absolute inset-0 flex items-end justify-around gap-3 px-3">
+
             {dados.map((item) => {
               const altura =
-                (item.quantidade /
-                  limiteEixo) *
-                100;
+                (item.quantidade / limiteEixo) * 100;
 
               return (
                 <div
@@ -309,9 +332,7 @@ function GraficoBarras({
                   <div
                     title={`${formatarData(
                       item.data
-                    )}: ${
-                      item.quantidade
-                    } transações`}
+                    )}: ${item.quantidade} transações`}
                     className="w-full max-w-[46px] bg-[#14528F]"
                     style={{
                       height: `${altura}%`,
@@ -329,7 +350,7 @@ function GraficoBarras({
         {dados.map((item) => (
           <div
             key={item.data}
-            className="min-w-0 flex-1 text-center text-xs font-medium text-black"
+            className="min-w-0 flex-1 text-center text-xs font-medium text-preto"
           >
             {formatarData(item.data)}
           </div>
@@ -339,24 +360,33 @@ function GraficoBarras({
   );
 }
 
-// PÁGINA RELATÓRIO DE TRANSAÇÕES
+// ======================================================
+// MS2 ESTOQUE
+// Relatório de Transações adaptado ao Design System
+// compartilhado pela Bia.
+//
+// Preservados:
+// - 68 transações simuladas
+// - Filtros de período, tipo sanguíneo e status
+// - Indicadores de total, entradas e saídas
+// - Gráfico de rosca e gráfico de barras
+// - Navegação entre as abas
+// - Botão Voltar
+// ======================================================
+
 export default function RelatorioTransacoesPage() {
-  const [periodo, setPeriodo] =
-    useState("30");
 
-  const [tipo, setTipo] =
-    useState("Todos");
-
-  const [status, setStatus] =
-    useState("Todos");
+  // CAMPOS DOS FILTROS
+  const [periodo, setPeriodo] = useState("30");
+  const [tipo, setTipo] = useState("Todos");
+  const [status, setStatus] = useState("Todos");
 
   // FILTROS APLICADOS
-  const [filtros, setFiltros] =
-    useState<Filtros>({
-      periodo: "30",
-      tipo: "Todos",
-      status: "Todos",
-    });
+  const [filtros, setFiltros] = useState<Filtros>({
+    periodo: "30",
+    tipo: "Todos",
+    status: "Todos",
+  });
 
   // FILTRAR TRANSAÇÕES
   const transacoesFiltradas = useMemo(() => {
@@ -364,72 +394,60 @@ export default function RelatorioTransacoesPage() {
       `${DATA_REFERENCIA}T12:00:00Z`
     ).getTime();
 
-    return transacoes.filter(
-      (transacao) => {
-        const dataTransacao = new Date(
-          `${transacao.data}T12:00:00Z`
-        ).getTime();
+    return transacoes.filter((transacao) => {
+      const dataTransacao = new Date(
+        `${transacao.data}T12:00:00Z`
+      ).getTime();
 
-        const diferencaDias = Math.floor(
-          (referencia -
-            dataTransacao) /
-            86400000
+      const diferencaDias = Math.floor(
+        (referencia - dataTransacao) / 86400000
+      );
+
+      const atendePeriodo =
+        filtros.periodo === "Todos" ||
+        (
+          diferencaDias >= 0 &&
+          diferencaDias < Number(filtros.periodo)
         );
 
-        const atendePeriodo =
-          filtros.periodo === "Todos" ||
-          (diferencaDias >= 0 &&
-            diferencaDias <
-              Number(filtros.periodo));
+      const atendeTipo =
+        filtros.tipo === "Todos" ||
+        transacao.tipoSanguineo === filtros.tipo;
 
-        const atendeTipo =
-          filtros.tipo === "Todos" ||
-          transacao.tipoSanguineo ===
-            filtros.tipo;
+      const atendeStatus =
+        filtros.status === "Todos" ||
+        transacao.status === filtros.status;
 
-        const atendeStatus =
-          filtros.status === "Todos" ||
-          transacao.status ===
-            filtros.status;
-
-        return (
-          atendePeriodo &&
-          atendeTipo &&
-          atendeStatus
-        );
-      }
-    );
+      return (
+        atendePeriodo &&
+        atendeTipo &&
+        atendeStatus
+      );
+    });
   }, [filtros]);
 
   // INDICADORES
-  const total =
-    transacoesFiltradas.length;
+  const total = transacoesFiltradas.length;
 
-  const entradas =
-    transacoesFiltradas.filter(
-      (transacao) =>
-        transacao.movimentacao ===
-        "Entrada"
-    ).length;
+  const entradas = transacoesFiltradas.filter(
+    (transacao) =>
+      transacao.movimentacao === "Entrada"
+  ).length;
 
-  const saidas =
-    transacoesFiltradas.filter(
-      (transacao) =>
-        transacao.movimentacao ===
-        "Saída"
-    ).length;
+  const saidas = transacoesFiltradas.filter(
+    (transacao) =>
+      transacao.movimentacao === "Saída"
+  ).length;
 
   // GRÁFICO POR DATA
-  const dadosGrafico =
-    distribuicaoDiaria.map((dia) => ({
-      data: dia.data,
+  const dadosGrafico = distribuicaoDiaria.map((dia) => ({
+    data: dia.data,
 
-      quantidade:
-        transacoesFiltradas.filter(
-          (transacao) =>
-            transacao.data === dia.data
-        ).length,
-    }));
+    quantidade: transacoesFiltradas.filter(
+      (transacao) =>
+        transacao.data === dia.data
+    ).length,
+  }));
 
   // GERAR RELATÓRIO
   function gerarRelatorio(
@@ -445,30 +463,38 @@ export default function RelatorioTransacoesPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#E1E4E9]">
+    <div className="flex min-h-screen bg-cinza-azulado">
 
-      {/* MENU COMPARTILHADO */}
-      <Sidebar />
+      {/* ========================================
+          MS2 ESTOQUE
+          Novo Sidebar compartilhado criado pela Bia
+          ======================================== */}
+      <Sidebar
+        itens={MENU_ESTOQUE}
+        usuario={usuarioEstoque}
+      />
 
       {/* CONTEÚDO PRINCIPAL */}
       <main className="min-w-0 flex-1 px-10 py-12">
 
         {/* TÍTULO */}
-        <h1 className="mb-7 text-2xl font-bold text-[#203A60]">
+        <h1 className="mb-7 text-2xl font-bold text-azul-1">
           Relatórios
         </h1>
 
         {/* ABAS */}
         <div className="mb-12 flex gap-6">
 
+          {/* ABA ESTOQUE */}
           <Link
             href="/estoque/relatorios"
-            className="pb-2 text-lg font-semibold text-[#71819B] hover:text-[#203A60]"
+            className="pb-2 text-lg font-semibold text-[#71819B] hover:text-azul-1"
           >
             Estoque
           </Link>
 
-          <span className="border-b-[3px] border-[#203A60] pb-2 text-lg font-bold text-[#203A60]">
+          {/* ABA TRANSAÇÕES ATIVA */}
+          <span className="border-b-[3px] border-azul-1 pb-2 text-lg font-bold text-azul-1">
             Transações
           </span>
         </div>
@@ -483,7 +509,7 @@ export default function RelatorioTransacoesPage() {
           <div>
             <label
               htmlFor="periodo"
-              className="mb-3 block text-lg font-semibold text-[#203A60]"
+              className="mb-3 block text-lg font-semibold text-azul-1"
             >
               Período
             </label>
@@ -492,11 +518,9 @@ export default function RelatorioTransacoesPage() {
               id="periodo"
               value={periodo}
               onChange={(evento) =>
-                setPeriodo(
-                  evento.target.value
-                )
+                setPeriodo(evento.target.value)
               }
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-3 text-sm text-black"
+              className="w-full rounded-md border border-gray-300 bg-card px-3 py-3 text-sm text-preto"
             >
               <option value="7">
                 Últimos 7 dias
@@ -520,7 +544,7 @@ export default function RelatorioTransacoesPage() {
           <div>
             <label
               htmlFor="tipoSanguineo"
-              className="mb-3 block text-lg font-semibold text-[#203A60]"
+              className="mb-3 block text-lg font-semibold text-azul-1"
             >
               Tipo sanguíneo
             </label>
@@ -529,26 +553,22 @@ export default function RelatorioTransacoesPage() {
               id="tipoSanguineo"
               value={tipo}
               onChange={(evento) =>
-                setTipo(
-                  evento.target.value
-                )
+                setTipo(evento.target.value)
               }
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-3 text-sm text-black"
+              className="w-full rounded-md border border-gray-300 bg-card px-3 py-3 text-sm text-preto"
             >
               <option value="Todos">
                 Todos
               </option>
 
-              {tiposSanguineos.map(
-                (item) => (
-                  <option
-                    key={item}
-                    value={item}
-                  >
-                    {item}
-                  </option>
-                )
-              )}
+              {tiposSanguineos.map((item) => (
+                <option
+                  key={item}
+                  value={item}
+                >
+                  {item}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -556,7 +576,7 @@ export default function RelatorioTransacoesPage() {
           <div>
             <label
               htmlFor="status"
-              className="mb-3 block text-lg font-semibold text-[#203A60]"
+              className="mb-3 block text-lg font-semibold text-azul-1"
             >
               Status
             </label>
@@ -565,11 +585,9 @@ export default function RelatorioTransacoesPage() {
               id="status"
               value={status}
               onChange={(evento) =>
-                setStatus(
-                  evento.target.value
-                )
+                setStatus(evento.target.value)
               }
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-3 text-sm text-black"
+              className="w-full rounded-md border border-gray-300 bg-card px-3 py-3 text-sm text-preto"
             >
               <option value="Todos">
                 Todos
@@ -589,13 +607,18 @@ export default function RelatorioTransacoesPage() {
             </select>
           </div>
 
-          {/* GERAR RELATÓRIO */}
-          <button
+          {/* ========================================
+              MS2 ESTOQUE
+              Botão compartilhado da Bia
+              ======================================== */}
+          <Button
             type="submit"
-            className="h-[46px] whitespace-nowrap rounded border border-blue-900 bg-[#1673EB] px-5 text-sm font-semibold text-white hover:bg-blue-700"
+            variante="secundario"
+            tamanho="sm"
+            className="h-[46px] px-5 text-sm"
           >
             Gerar relatório
-          </button>
+          </Button>
         </form>
 
         {/* INDICADORES */}
@@ -616,13 +639,13 @@ export default function RelatorioTransacoesPage() {
           ].map((indicador) => (
             <div
               key={indicador.titulo}
-              className="flex min-h-[100px] flex-col justify-between bg-white p-5"
+              className="flex min-h-[100px] flex-col justify-between bg-card p-5"
             >
               <h2 className="text-sm font-medium text-gray-800">
                 {indicador.titulo}
               </h2>
 
-              <p className="text-4xl font-bold text-[#14528F]">
+              <p className="text-4xl font-bold text-azul-2">
                 {indicador.valor}
               </p>
             </div>
@@ -633,9 +656,9 @@ export default function RelatorioTransacoesPage() {
         <section className="grid grid-cols-[1fr_2fr] gap-4">
 
           {/* GRÁFICO DE ROSCA */}
-          <div className="rounded-lg bg-white px-5 py-7 shadow-sm">
+          <div className="rounded-lg bg-card px-5 py-7 shadow-sm">
 
-            <h2 className="mb-6 text-center text-sm font-semibold text-black">
+            <h2 className="mb-6 text-center text-sm font-semibold text-preto">
               Tipos de transação
             </h2>
 
@@ -646,9 +669,9 @@ export default function RelatorioTransacoesPage() {
           </div>
 
           {/* GRÁFICO DE BARRAS */}
-          <div className="bg-white px-7 py-7">
+          <div className="bg-card px-7 py-7">
 
-            <h2 className="mb-6 text-sm font-semibold text-black">
+            <h2 className="mb-6 text-sm font-semibold text-preto">
               Transações por período
             </h2>
 
@@ -660,23 +683,30 @@ export default function RelatorioTransacoesPage() {
           </div>
         </section>
 
-        {/* OBSERVAÇÃO */}
-       {/*  <p className="mt-5 text-xs text-gray-600">
+        {/* OBSERVAÇÃO SOBRE OS DADOS SIMULADOS
+        <p className="mt-5 text-xs text-gray-600">
           Dados simulados para fins acadêmicos.
           Referência: 11/11/2026.
           Os filtros são aplicados aos registros
           desta demonstração. Nenhuma informação
           foi consultada no banco de dados.
-        </p> */}
+        </p>
+        */}
 
-        {/* VOLTAR */}
+        {/* ========================================
+            MS2 ESTOQUE
+            Botão Voltar padronizado da Bia
+            Destino: Lista de Transações
+            ======================================== */}
         <div className="mt-10 flex justify-end">
-          <Link
+          <ButtonLink
             href="/estoque/transacoes"
-            className="flex h-11 items-center justify-center rounded-lg border border-black bg-white px-10 text-sm font-semibold text-black hover:bg-gray-100"
+            variante="voltar"
+            tamanho="md"
+            className="min-w-32"
           >
             Voltar
-          </Link>
+          </ButtonLink>
         </div>
       </main>
     </div>

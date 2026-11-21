@@ -1,5 +1,27 @@
 
-import Sidebar from "@/components/Sidebar";
+import { Search } from "lucide-react";
+
+// ======================================================
+// INÍCIO - MS2 ESTOQUE
+// Integração com os componentes compartilhados da Bia
+// ======================================================
+
+import { MENU_ESTOQUE } from "@/auth/menus";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { Button } from "@/components/ui/Button";
+
+// FIM - MS2 ESTOQUE
+
+// ======================================================
+// MS2 ESTOQUE
+// Identificação temporária do usuário
+// Futuramente será obtida pelo sistema de autenticação
+// ======================================================
+
+const usuarioEstoque = {
+  nome: "Usuário de teste",
+  cargo: "Estoque",
+};
 
 // ÍCONE DE GOTA DE SANGUE
 function IconeGota({
@@ -13,10 +35,11 @@ function IconeGota({
       height={tamanho}
       viewBox="0 0 24 24"
       fill="none"
-      stroke="#B32630"
+      stroke="currentColor"
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
+      className="text-vermelho-1"
       aria-hidden="true"
     >
       <path d="M12 2C9 6.5 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-4-8.5-7-13Z" />
@@ -67,35 +90,50 @@ const indicadores = [
   },
 ];
 
-// DASHBOARD DO ESTOQUE
+// ======================================================
+// MS2 ESTOQUE
+// Dashboard atualizado para utilizar os componentes
+// e estilos compartilhados do frontend HemoVida
+// ======================================================
+
 export default function EstoquePage() {
   return (
-    <div className="flex min-h-screen bg-[#E1E4E9]">
-      {/* MENU COMPARTILHADO */}
-      <Sidebar />
+    <div className="flex min-h-screen bg-cinza-azulado">
+
+      {/* SIDEBAR COMPARTILHADO - BIA */}
+      {/* MS2 ESTOQUE: configuração de menu específica */}
+      <Sidebar
+        itens={MENU_ESTOQUE}
+        usuario={usuarioEstoque}
+      />
 
       {/* CONTEÚDO PRINCIPAL */}
       <main className="min-w-0 flex-1 px-10 py-12">
+
         {/* PESQUISA */}
-        <div className="mb-10 flex overflow-hidden rounded-md border border-gray-300 bg-white">
+        <div className="mb-10 flex overflow-hidden rounded-md border border-gray-300 bg-card">
+
           <input
             type="text"
             placeholder="Buscar"
             aria-label="Buscar"
-            className="w-full px-4 py-3 text-gray-700 outline-none"
+            className="w-full px-4 py-3 text-preto outline-none"
           />
 
-          <button
+          {/* MS2 ESTOQUE: botão padronizado da Bia */}
+          <Button
             type="button"
+            variante="suave"
+            tamanho="sm"
             aria-label="Pesquisar"
-            className="border-l border-gray-300 bg-gray-200 px-5 text-xl text-gray-700"
+            className="rounded-none border-l border-gray-300 px-5"
           >
-            ⌕
-          </button>
+            <Search size={22} />
+          </Button>
         </div>
 
         {/* TÍTULO */}
-        <h1 className="mb-12 text-2xl font-bold text-[#203A60]">
+        <h1 className="mb-12 text-2xl font-bold text-azul-1">
           Aqui você acompanha o estoque e as transações do sistema
         </h1>
 
@@ -104,23 +142,29 @@ export default function EstoquePage() {
           {indicadores.map((indicador) => (
             <div
               key={indicador.titulo}
-              className="flex min-h-44 flex-col bg-white p-5"
+              className="flex min-h-44 flex-col bg-card p-5"
             >
-              <div className="mb-3 flex h-9 items-center text-[#B32630]">
+              {/* ÍCONE */}
+              <div className="mb-3 flex h-9 items-center text-vermelho-1">
                 {indicador.icone === "gota" ? (
                   <IconeGota tamanho={30} />
                 ) : (
-                  <span className="text-3xl">
+                  <span
+                    className="text-3xl"
+                    aria-hidden="true"
+                  >
                     {indicador.icone}
                   </span>
                 )}
               </div>
 
-              <h2 className="min-h-12 text-sm font-semibold text-gray-800">
+              {/* DESCRIÇÃO */}
+              <h2 className="min-h-12 text-sm font-semibold text-preto">
                 {indicador.titulo}
               </h2>
 
-              <p className="mt-auto text-4xl font-bold text-[#B32630]">
+              {/* QUANTIDADE */}
+              <p className="mt-auto text-4xl font-bold text-vermelho-1">
                 {indicador.valor}
               </p>
             </div>
@@ -129,7 +173,7 @@ export default function EstoquePage() {
 
         {/* ESTOQUE POR TIPO SANGUÍNEO */}
         <section>
-          <h2 className="mb-10 text-2xl font-bold text-[#203A60]">
+          <h2 className="mb-10 text-2xl font-bold text-azul-1">
             Estoque por tipo sanguíneo
           </h2>
 
@@ -137,25 +181,26 @@ export default function EstoquePage() {
             {tiposSanguineos.map((item) => (
               <div
                 key={item.tipo}
-                className="flex min-h-36 flex-col items-center justify-center bg-white p-4"
+                className="flex min-h-36 flex-col items-center justify-center bg-card p-4"
               >
+
                 {/* GOTA E TIPO SANGUÍNEO À ESQUERDA */}
                 <div className="mb-2 flex w-full items-center justify-start gap-3 pl-5">
                   <IconeGota tamanho={28} />
 
-                  <span className="text-xl font-bold text-black">
+                  <span className="text-xl font-bold text-preto">
                     {item.tipo}
                   </span>
                 </div>
 
                 {/* QUANTIDADE CENTRALIZADA */}
-                <p className="mb-3 text-xl font-semibold text-gray-800">
+                <p className="mb-3 text-xl font-semibold text-preto">
                   {item.quantidade}
                 </p>
 
                 {/* STATUS CENTRALIZADO */}
                 <span
-                  className={`w-full rounded-full px-3 py-1 text-center text-sm font-semibold text-[#203A60] ${
+                  className={`w-full rounded-full px-3 py-1 text-center text-sm font-semibold text-azul-1 ${
                     item.status === "Adequado"
                       ? "bg-[#D0EEE8]"
                       : "bg-[#FFF0D4]"

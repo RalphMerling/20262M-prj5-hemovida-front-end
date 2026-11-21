@@ -1,11 +1,25 @@
 
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import Sidebar from "@/components/Sidebar";
 
+// ======================================================
+// INÍCIO - MS2 ESTOQUE
+// Integração com os componentes compartilhados da Bia
+// ======================================================
+
+import { MENU_ESTOQUE } from "@/auth/menus";
+import { Sidebar } from "@/components/layout/Sidebar";
+import {
+  Button,
+  ButtonLink,
+} from "@/components/ui/Button";
+
+// FIM - MS2 ESTOQUE
+
+// TIPOS PERMITIDOS NA NOVA TRANSAÇÃO
+// Saídas para hospitais pertencem ao fluxo de Solicitações.
 type TipoTransacao =
   | ""
   | "Entrada por doação"
@@ -17,6 +31,7 @@ type Bolsa = {
   volume: number;
 };
 
+// TIPOS SANGUÍNEOS
 const tiposSanguineos = [
   "O+",
   "O-",
@@ -29,6 +44,7 @@ const tiposSanguineos = [
 ];
 
 // ESTOQUE SIMULADO
+// Mantidos os 46 registros demonstrativos.
 const bolsasEstoque: Bolsa[] = Array.from(
   { length: 46 },
   (_, indice) => ({
@@ -39,68 +55,101 @@ const bolsasEstoque: Bolsa[] = Array.from(
   })
 );
 
+// ======================================================
+// MS2 ESTOQUE
+// Usuário provisório até integração da autenticação
+// ======================================================
+
+const usuarioEstoque = {
+  nome: "Usuário de teste",
+  cargo: "Estoque",
+};
+
 // DATA LOCAL NO FORMATO AAAA-MM-DD
 function dataAtualLocal(): string {
   const hoje = new Date();
 
   const ano = hoje.getFullYear();
-  const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-  const dia = String(hoje.getDate()).padStart(2, "0");
+
+  const mes = String(
+    hoje.getMonth() + 1
+  ).padStart(2, "0");
+
+  const dia = String(
+    hoje.getDate()
+  ).padStart(2, "0");
 
   return `${ano}-${mes}-${dia}`;
 }
 
-// ESTILOS
+// ESTILOS COMPARTILHADOS DA TELA
+// MS2 ESTOQUE: aplicadas as cores globais da Bia.
 const classeLabel =
-  "mb-3 block text-[20px] font-semibold text-black";
+  "mb-3 block text-[20px] font-semibold text-preto";
 
 const classeCampo =
-  "h-[35px] w-full rounded-md border border-[#C5C5C5] " +
-  "bg-white px-3 text-sm text-black outline-none " +
-  "placeholder:text-[#B5B5B5] focus:border-[#1673EB]";
+  "h-[35px] w-full rounded-md border border-gray-300 " +
+  "bg-card px-3 text-sm text-preto outline-none " +
+  "placeholder:text-gray-400 focus:border-azul-2";
 
+// MS2 ESTOQUE
+// Os botões utilizam os componentes compartilhados.
+// Esta classe preserva a altura e os espaçamentos
+// do formulário existente.
 const classeBotaoAdicionar =
-  "flex h-[38px] shrink-0 items-center justify-center " +
-  "rounded-sm border border-[#203A60] bg-[#1673EB] " +
-  "px-3 text-sm font-semibold text-white hover:bg-[#285FCB]";
+  "h-[38px] shrink-0 rounded-sm px-3 text-sm";
+
+// ======================================================
+// MS2 ESTOQUE
+// Nova Transação adaptada ao Design System da Bia.
+// Mantidas as regras, os campos e a navegação original.
+// ======================================================
 
 export default function NovaTransacaoPage() {
-  const router = useRouter();
 
+  // TIPO DE TRANSAÇÃO
   const [tipoTransacao, setTipoTransacao] =
     useState<TipoTransacao>("");
 
-  const [dataColeta, setDataColeta] = useState("");
+  const [dataColeta, setDataColeta] =
+    useState("");
 
-  // CAMPOS PARA ENTRADA
+  // CAMPOS PARA ENTRADA POR DOAÇÃO
   const [codigoNovaBolsa, setCodigoNovaBolsa] =
     useState("");
 
   const [tipoSanguineo, setTipoSanguineo] =
     useState("");
 
-  const [volume, setVolume] = useState("450");
+  const [volume, setVolume] =
+    useState("450");
 
-  // CAMPO PARA DESCARTE
+  // CAMPO PARA SAÍDA POR DESCARTE
   const [bolsaSelecionada, setBolsaSelecionada] =
     useState("");
 
-  // BOLSAS ADICIONADAS
-  const [bolsasAdicionadas, setBolsasAdicionadas] =
-    useState<Bolsa[]>([]);
+  // BOLSAS ADICIONADAS À TRANSAÇÃO
+  const [
+    bolsasAdicionadas,
+    setBolsasAdicionadas,
+  ] = useState<Bolsa[]>([]);
 
-  const [observacoes, setObservacoes] = useState("");
+  // OBSERVAÇÕES
+  const [observacoes, setObservacoes] =
+    useState("");
 
+  // MENSAGENS
   const [erro, setErro] = useState("");
   const [mensagem, setMensagem] = useState("");
 
+  // IDENTIFICAR TIPO SELECIONADO
   const ehEntrada =
     tipoTransacao === "Entrada por doação";
 
   const ehDescarte =
     tipoTransacao === "Saída por descarte";
 
-  // ALTERAR TIPO
+  // ALTERAR TIPO DE TRANSAÇÃO
   function alterarTipo(valor: TipoTransacao) {
     setTipoTransacao(valor);
 
@@ -127,10 +176,12 @@ export default function NovaTransacaoPage() {
 
     let novaBolsa: Bolsa;
 
+    // ENTRADA POR DOAÇÃO
     if (ehEntrada) {
       const codigo =
         codigoNovaBolsa.trim().toUpperCase();
 
+      // VALIDAR ID DA BOLSA
       if (!/^BOL-\d{3,}$/.test(codigo)) {
         setErro(
           "Informe o ID da bolsa no formato BOL-047."
@@ -138,11 +189,13 @@ export default function NovaTransacaoPage() {
         return;
       }
 
+      // VALIDAR TIPO SANGUÍNEO
       if (!tipoSanguineo) {
         setErro("Selecione o tipo sanguíneo.");
         return;
       }
 
+      // VALIDAR VOLUME
       const volumeNumerico = Number(volume);
 
       if (
@@ -153,6 +206,7 @@ export default function NovaTransacaoPage() {
         return;
       }
 
+      // IMPEDIR ID JÁ EXISTENTE NO ESTOQUE SIMULADO
       if (
         bolsasEstoque.some(
           (bolsa) => bolsa.id === codigo
@@ -170,8 +224,12 @@ export default function NovaTransacaoPage() {
         volume: volumeNumerico,
       };
     } else {
+
+      // SAÍDA POR DESCARTE:
+      // SELECIONAR BOLSA EXISTENTE
       const encontrada = bolsasEstoque.find(
-        (bolsa) => bolsa.id === bolsaSelecionada
+        (bolsa) =>
+          bolsa.id === bolsaSelecionada
       );
 
       if (!encontrada) {
@@ -184,6 +242,7 @@ export default function NovaTransacaoPage() {
       novaBolsa = encontrada;
     }
 
+    // NÃO PERMITIR BOLSA DUPLICADA
     if (
       bolsasAdicionadas.some(
         (bolsa) => bolsa.id === novaBolsa.id
@@ -193,11 +252,13 @@ export default function NovaTransacaoPage() {
       return;
     }
 
+    // ADICIONAR BOLSA À LISTA
     setBolsasAdicionadas((anteriores) => [
       ...anteriores,
       novaBolsa,
     ]);
 
+    // LIMPAR CAMPOS
     setCodigoNovaBolsa("");
     setTipoSanguineo("");
     setVolume("450");
@@ -207,14 +268,16 @@ export default function NovaTransacaoPage() {
   // REMOVER BOLSA
   function removerBolsa(id: string) {
     setBolsasAdicionadas((anteriores) =>
-      anteriores.filter((bolsa) => bolsa.id !== id)
+      anteriores.filter(
+        (bolsa) => bolsa.id !== id
+      )
     );
 
     setErro("");
     setMensagem("");
   }
 
-  // REGISTRAR TRANSAÇÃO
+  // REGISTRAR TRANSAÇÃO SIMULADA
   function registrarTransacao(
     evento: FormEvent<HTMLFormElement>
   ) {
@@ -223,23 +286,29 @@ export default function NovaTransacaoPage() {
     setErro("");
     setMensagem("");
 
+    // VALIDAR TIPO
     if (!tipoTransacao) {
       setErro("Selecione o tipo de transação.");
       return;
     }
 
+    // VALIDAR DATA DE COLETA
     if (ehEntrada && !dataColeta) {
       setErro("Informe a data da coleta.");
       return;
     }
 
-    if (ehEntrada && dataColeta > dataAtualLocal()) {
+    if (
+      ehEntrada &&
+      dataColeta > dataAtualLocal()
+    ) {
       setErro(
         "A data da coleta não pode ser futura."
       );
       return;
     }
 
+    // VALIDAR BOLSAS
     if (bolsasAdicionadas.length === 0) {
       setErro(
         "Adicione pelo menos uma bolsa."
@@ -247,27 +316,40 @@ export default function NovaTransacaoPage() {
       return;
     }
 
-    if (ehDescarte && !observacoes.trim()) {
+    // VALIDAR MOTIVO DO DESCARTE
+    if (
+      ehDescarte &&
+      !observacoes.trim()
+    ) {
       setErro(
         "Informe o motivo do descarte nas observações."
       );
       return;
     }
 
+    // CONFIRMAÇÃO
     const confirmar = window.confirm(
       "Deseja simular o registro desta transação?"
     );
 
-    if (!confirmar) return;
+    if (!confirmar) {
+      return;
+    }
 
+    // DADOS DA TRANSAÇÃO SIMULADA
     const dados = {
       tipoTransacao,
-      dataColeta: ehEntrada ? dataColeta : null,
+      dataColeta: ehEntrada
+        ? dataColeta
+        : null,
       bolsas: bolsasAdicionadas,
       observacoes,
     };
 
-    console.log("Transação simulada:", dados);
+    console.log(
+      "Transação simulada:",
+      dados
+    );
 
     setMensagem(
       "Transação validada na demonstração. " +
@@ -275,16 +357,17 @@ export default function NovaTransacaoPage() {
     );
   }
 
-  // CANCELAR
-  function cancelar() {
-    router.push("/estoque/transacoes");
-  }
-
   return (
-    <div className="flex min-h-screen bg-[#E1E4E9]">
+    <div className="flex min-h-screen bg-cinza-azulado">
 
-      {/* MENU LATERAL */}
-      <Sidebar />
+      {/* ========================================
+          MS2 ESTOQUE
+          Sidebar compartilhado criado pela Bia
+          ======================================== */}
+      <Sidebar
+        itens={MENU_ESTOQUE}
+        usuario={usuarioEstoque}
+      />
 
       {/* ÁREA PRINCIPAL */}
       <main className="flex min-w-0 flex-1 flex-col px-8 py-12">
@@ -293,7 +376,7 @@ export default function NovaTransacaoPage() {
         <div className="mx-auto flex w-full max-w-[900px] flex-1 flex-col">
 
           {/* TÍTULO */}
-          <h1 className="mb-12 text-2xl font-bold text-[#203A60]">
+          <h1 className="mb-12 text-2xl font-bold text-azul-1">
             Nova transação
           </h1>
 
@@ -302,6 +385,7 @@ export default function NovaTransacaoPage() {
             onSubmit={registrarTransacao}
             className="flex flex-1 flex-col px-9"
           >
+
             <div className="flex-1">
 
               {/* PRIMEIRA LINHA */}
@@ -327,7 +411,7 @@ export default function NovaTransacaoPage() {
                     className={
                       classeCampo +
                       (!tipoTransacao
-                        ? " text-[#B5B5B5]"
+                        ? " text-gray-400"
                         : "")
                     }
                     required
@@ -368,7 +452,7 @@ export default function NovaTransacaoPage() {
                     className={
                       classeCampo +
                       " disabled:cursor-not-allowed " +
-                      "disabled:bg-[#F5F5F5]"
+                      "disabled:bg-gray-100"
                     }
                   />
                 </div>
@@ -376,6 +460,7 @@ export default function NovaTransacaoPage() {
 
               {/* SEGUNDA LINHA */}
               <div className="mt-14">
+
                 <label className={classeLabel}>
                   ID da Bolsa(s) *
                 </label>
@@ -383,25 +468,27 @@ export default function NovaTransacaoPage() {
                 {/* SEM TIPO SELECIONADO */}
                 {!tipoTransacao && (
                   <div className="flex items-center gap-2">
+
                     <div
                       className={
                         classeCampo +
-                        " flex flex-1 items-center text-[#B5B5B5]"
+                        " flex min-w-0 flex-1 " +
+                        "items-center text-gray-400"
                       }
                     >
                       Buscar bolsa por ID ou tipo sanguíneo
                     </div>
 
-                    <button
+                    {/* MS2 ESTOQUE: BUTTON DA BIA */}
+                    <Button
                       type="button"
+                      variante="secundario"
+                      tamanho="sm"
                       disabled
-                      className={
-                        classeBotaoAdicionar +
-                        " cursor-not-allowed opacity-60"
-                      }
+                      className={classeBotaoAdicionar}
                     >
                       + Adicionar bolsa
-                    </button>
+                    </Button>
                   </div>
                 )}
 
@@ -409,8 +496,9 @@ export default function NovaTransacaoPage() {
                 {ehEntrada && (
                   <div className="space-y-4">
 
-                    {/* ID E BOTÃO */}
+                    {/* ID DA NOVA BOLSA E BOTÃO */}
                     <div className="flex items-center gap-2">
+
                       <input
                         type="text"
                         value={codigoNovaBolsa}
@@ -421,24 +509,32 @@ export default function NovaTransacaoPage() {
                         }
                         placeholder="Informe o ID da nova bolsa. Ex.: BOL-047"
                         aria-label="ID da nova bolsa"
-                        className={classeCampo + " flex-1"}
+                        className={
+                          classeCampo +
+                          " min-w-0 flex-1"
+                        }
                       />
 
-                      <button
+                      {/* MS2 ESTOQUE: BUTTON DA BIA */}
+                      <Button
                         type="button"
+                        variante="secundario"
+                        tamanho="sm"
                         onClick={adicionarBolsa}
                         className={classeBotaoAdicionar}
                       >
                         + Adicionar bolsa
-                      </button>
+                      </Button>
                     </div>
 
-                    {/* DADOS DA NOVA BOLSA */}
+                    {/* TIPO SANGUÍNEO E VOLUME */}
                     <div className="grid grid-cols-2 gap-4">
+
+                      {/* TIPO SANGUÍNEO */}
                       <div>
                         <label
                           htmlFor="tipoSanguineo"
-                          className="mb-2 block text-sm font-semibold text-[#203A60]"
+                          className="mb-2 block text-sm font-semibold text-azul-1"
                         >
                           Tipo sanguíneo
                         </label>
@@ -457,21 +553,24 @@ export default function NovaTransacaoPage() {
                             Selecione o tipo sanguíneo
                           </option>
 
-                          {tiposSanguineos.map((tipo) => (
-                            <option
-                              key={tipo}
-                              value={tipo}
-                            >
-                              {tipo}
-                            </option>
-                          ))}
+                          {tiposSanguineos.map(
+                            (tipo) => (
+                              <option
+                                key={tipo}
+                                value={tipo}
+                              >
+                                {tipo}
+                              </option>
+                            )
+                          )}
                         </select>
                       </div>
 
+                      {/* VOLUME */}
                       <div>
                         <label
                           htmlFor="volume"
-                          className="mb-2 block text-sm font-semibold text-[#203A60]"
+                          className="mb-2 block text-sm font-semibold text-azul-1"
                         >
                           Volume (mL)
                         </label>
@@ -482,7 +581,9 @@ export default function NovaTransacaoPage() {
                           min="1"
                           value={volume}
                           onChange={(evento) =>
-                            setVolume(evento.target.value)
+                            setVolume(
+                              evento.target.value
+                            )
                           }
                           className={classeCampo}
                         />
@@ -494,6 +595,8 @@ export default function NovaTransacaoPage() {
                 {/* SAÍDA POR DESCARTE */}
                 {ehDescarte && (
                   <div className="flex items-center gap-2">
+
+                    {/* SELECIONAR BOLSA EXISTENTE */}
                     <select
                       aria-label="Selecione uma bolsa para descarte"
                       value={bolsaSelecionada}
@@ -529,46 +632,58 @@ export default function NovaTransacaoPage() {
                         ))}
                     </select>
 
-                    <button
+                    {/* MS2 ESTOQUE: BUTTON DA BIA */}
+                    <Button
                       type="button"
+                      variante="secundario"
+                      tamanho="sm"
                       onClick={adicionarBolsa}
                       className={classeBotaoAdicionar}
                     >
                       + Adicionar bolsa
-                    </button>
+                    </Button>
                   </div>
                 )}
 
                 {/* BOLSAS ADICIONADAS */}
                 {bolsasAdicionadas.length > 0 && (
                   <div className="mt-5 flex flex-wrap gap-3">
-                    {bolsasAdicionadas.map((bolsa) => (
-                      <div
-                        key={bolsa.id}
-                        className="flex items-center gap-3 rounded-md border border-[#B5CAD8] bg-white px-4 py-2"
-                      >
-                        <span className="text-sm font-semibold text-[#203A60]">
-                          {bolsa.id} — {bolsa.tipoSanguineo}
-                        </span>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            removerBolsa(bolsa.id)
-                          }
-                          aria-label={`Remover ${bolsa.id}`}
-                          className="text-lg font-bold text-red-700"
+                    {bolsasAdicionadas.map(
+                      (bolsa) => (
+                        <div
+                          key={bolsa.id}
+                          className="flex items-center gap-3 rounded-md border border-gray-300 bg-card px-4 py-2"
                         >
-                          ×
-                        </button>
-                      </div>
-                    ))}
+
+                          {/* IDENTIFICAÇÃO */}
+                          <span className="text-sm font-semibold text-azul-1">
+                            {bolsa.id} — {bolsa.tipoSanguineo}
+                          </span>
+
+                          {/* MS2 ESTOQUE:
+                              BUTTON PARA REMOVER BOLSA */}
+                          <Button
+                            type="button"
+                            variante="cancelar"
+                            tamanho="sm"
+                            onClick={() =>
+                              removerBolsa(bolsa.id)
+                            }
+                            aria-label={`Remover ${bolsa.id}`}
+                            className="h-7 min-w-7 px-2 py-0 text-sm"
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      )
+                    )}
                   </div>
                 )}
               </div>
 
               {/* OBSERVAÇÕES */}
               <div className="mt-16">
+
                 <label
                   htmlFor="observacoes"
                   className={classeLabel}
@@ -582,7 +697,9 @@ export default function NovaTransacaoPage() {
                   rows={8}
                   value={observacoes}
                   onChange={(evento) =>
-                    setObservacoes(evento.target.value)
+                    setObservacoes(
+                      evento.target.value
+                    )
                   }
                   required={ehDescarte}
                   placeholder={
@@ -590,11 +707,18 @@ export default function NovaTransacaoPage() {
                       ? "Informe o motivo do descarte..."
                       : "Informações adicionais sobre a transação..."
                   }
-                  className="h-[207px] w-full resize-none rounded-md border border-[#C5C5C5] bg-white px-3 py-2 text-sm text-black outline-none placeholder:text-[#B5B5B5] focus:border-[#1673EB]"
+                  className={
+                    "h-[207px] w-full resize-none " +
+                    "rounded-md border border-gray-300 " +
+                    "bg-card px-3 py-2 text-sm " +
+                    "text-preto outline-none " +
+                    "placeholder:text-gray-400 " +
+                    "focus:border-azul-2"
+                  }
                 />
               </div>
 
-              {/* ERRO */}
+              {/* MENSAGEM DE ERRO */}
               {erro && (
                 <p
                   role="alert"
@@ -604,34 +728,45 @@ export default function NovaTransacaoPage() {
                 </p>
               )}
 
-              {/* MENSAGEM */}
+              {/* MENSAGEM DE CONFIRMAÇÃO */}
               {mensagem && (
                 <p
                   role="status"
-                  className="mt-6 rounded-md bg-white px-4 py-3 text-sm font-semibold text-[#203A60]"
+                  className="mt-6 rounded-md bg-card px-4 py-3 text-sm font-semibold text-azul-1"
                 >
                   {mensagem}
                 </p>
               )}
             </div>
 
-            {/* BOTÕES INFERIORES */}
+            {/* ========================================
+                MS2 ESTOQUE
+                Botões inferiores padronizados da Bia
+                Mantida a navegação e a simulação
+                ======================================== */}
             <div className="mt-auto flex justify-end gap-6 pt-12">
 
-              <button
-                type="button"
-                onClick={cancelar}
-                className="flex h-11 min-w-[156px] items-center justify-center rounded-lg border border-black bg-white px-6 text-sm font-semibold text-black hover:bg-gray-100"
+              {/* CANCELAR:
+                  VOLTA PARA LISTA DE TRANSAÇÕES */}
+              <ButtonLink
+                href="/estoque/transacoes"
+                variante="voltar"
+                tamanho="sm"
+                className="h-11 min-w-[156px] px-6 text-sm"
               >
                 Cancelar
-              </button>
+              </ButtonLink>
 
-              <button
+              {/* REGISTRAR:
+                  VALIDA E SIMULA O REGISTRO */}
+              <Button
                 type="submit"
-                className="flex h-11 min-w-[210px] items-center justify-center rounded-lg border border-[#203A60] bg-[#1673EB] px-6 text-sm font-semibold text-white hover:bg-[#285FCB]"
+                variante="secundario"
+                tamanho="sm"
+                className="h-11 min-w-[210px] px-6 text-sm"
               >
                 Registrar transação
-              </button>
+              </Button>
             </div>
           </form>
         </div>
