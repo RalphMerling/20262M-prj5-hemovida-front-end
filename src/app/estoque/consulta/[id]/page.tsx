@@ -1,7 +1,17 @@
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import Sidebar from "@/components/Sidebar";
+
+// ======================================================
+// INÍCIO - MS2 ESTOQUE
+// Integração com os componentes compartilhados da Bia
+// ======================================================
+
+import { MENU_ESTOQUE } from "@/auth/menus";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { ButtonLink } from "@/components/ui/Button";
+
+// FIM - MS2 ESTOQUE
 
 // TIPOS DE DADOS
 type Status = "Disponível" | "Em uso" | "Vencida";
@@ -36,8 +46,18 @@ const tiposSanguineos = [
   "AB-",
 ];
 
+// ======================================================
+// MS2 ESTOQUE
+// Usuário temporário até a integração da autenticação
+// ======================================================
+
+const usuarioEstoque = {
+  nome: "Usuário de teste",
+  cargo: "Estoque",
+};
+
 // FORMATAR DATA
-function formatarData(data: string) {
+function formatarData(data: string): string {
   const [ano, mes, dia] = data.split("-");
   return `${dia}/${mes}/${ano}`;
 }
@@ -115,7 +135,7 @@ function buscarBolsa(id: string): Bolsa | null {
   };
 }
 
-// COMPONENTE DE CAMPO DE CONSULTA
+// CAMPO DE CONSULTA
 function CampoConsulta({
   titulo,
   valor,
@@ -125,11 +145,11 @@ function CampoConsulta({
 }) {
   return (
     <div>
-      <label className="mb-3 block text-xl font-semibold text-black">
+      <p className="mb-3 block text-xl font-semibold text-preto">
         {titulo}
-      </label>
+      </p>
 
-      <div className="min-h-10 rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-black">
+      <div className="min-h-10 rounded-md border border-gray-300 bg-card px-4 py-2 text-base font-medium text-preto">
         {valor}
       </div>
     </div>
@@ -141,7 +161,12 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
-// PÁGINA DE DETALHES DA BOLSA
+// ======================================================
+// MS2 ESTOQUE
+// Detalhes da bolsa utilizando o novo Design System
+// Mantidos os dados, o histórico e a navegação original
+// ======================================================
+
 export default async function DetalhesBolsaPage({
   params,
 }: PageProps) {
@@ -153,18 +178,25 @@ export default async function DetalhesBolsaPage({
     notFound();
   }
 
+  // CORES DOS STATUS
   const corStatus =
     bolsa.status === "Disponível"
       ? "bg-[#C0DFDC]"
       : bolsa.status === "Em uso"
-      ? "bg-[#CCDEF4]"
-      : "bg-[#F9D4D8]";
+        ? "bg-[#CCDEF4]"
+        : "bg-[#F9D4D8]";
 
   return (
-    <div className="flex min-h-screen bg-[#E1E4E9]">
+    <div className="flex min-h-screen bg-cinza-azulado">
 
-      {/* MENU LATERAL COMPARTILHADO */}
-      <Sidebar />
+      {/* ========================================
+          MS2 ESTOQUE
+          Novo Sidebar compartilhado da Bia
+          ======================================== */}
+      <Sidebar
+        itens={MENU_ESTOQUE}
+        usuario={usuarioEstoque}
+      />
 
       {/* CONTEÚDO PRINCIPAL */}
       <main className="flex min-w-0 flex-1 flex-col px-12 py-12">
@@ -174,12 +206,12 @@ export default async function DetalhesBolsaPage({
           <Link
             href="/estoque/consulta"
             aria-label="Voltar para a lista de estoque"
-            className="text-4xl text-black hover:text-gray-600"
+            className="text-4xl text-preto hover:text-azul-1"
           >
             ←
           </Link>
 
-          <h1 className="text-2xl font-bold text-[#203A60]">
+          <h1 className="text-2xl font-bold text-azul-1">
             Consulta de item de estoque
           </h1>
         </div>
@@ -187,7 +219,7 @@ export default async function DetalhesBolsaPage({
         {/* STATUS DA BOLSA */}
         <div className="mb-12 flex justify-end">
           <span
-            className={`rounded-full px-7 py-2 text-sm font-semibold text-[#203A60] ${corStatus}`}
+            className={`rounded-full px-7 py-2 text-sm font-semibold text-azul-1 ${corStatus}`}
           >
             {bolsa.status}
           </span>
@@ -225,20 +257,21 @@ export default async function DetalhesBolsaPage({
             titulo="Entrada no estoque"
             valor={formatarData(bolsa.entrada)}
           />
+
         </section>
 
         {/* HISTÓRICO DE MOVIMENTAÇÕES */}
         <section className="mt-24 px-2">
 
-          <h2 className="mb-8 text-xl font-bold text-black">
+          <h2 className="mb-8 text-xl font-bold text-preto">
             Histórico de movimentações
           </h2>
 
-          <div className="overflow-x-auto bg-white">
+          <div className="overflow-x-auto bg-card">
             <table className="w-full border-collapse text-center text-sm">
 
               {/* CABEÇALHO */}
-              <thead className="bg-[#D1E1F1] text-[#203A60]">
+              <thead className="bg-[#D1E1F1] text-azul-1">
                 <tr>
                   <th className="px-4 py-3">
                     Data
@@ -263,7 +296,7 @@ export default async function DetalhesBolsaPage({
                 {bolsa.historico.map((movimento, index) => (
                   <tr
                     key={index}
-                    className="h-16 text-black"
+                    className="h-16 border-b border-gray-100 text-preto"
                   >
                     <td className="px-4 font-medium">
                       {formatarData(movimento.data)}
@@ -287,14 +320,20 @@ export default async function DetalhesBolsaPage({
           </div>
         </section>
 
-        {/* BOTÃO VOLTAR */}
+        {/* ========================================
+            MS2 ESTOQUE
+            Botão Voltar padronizado da Bia
+            Destino: Lista de Consulta do Estoque
+            ======================================== */}
         <div className="mt-auto flex justify-end pt-20">
-          <Link
+          <ButtonLink
             href="/estoque/consulta"
-            className="rounded-lg border border-black bg-white px-10 py-3 text-sm font-semibold text-black hover:bg-gray-100"
+            variante="voltar"
+            tamanho="md"
+            className="min-w-32"
           >
             Voltar
-          </Link>
+          </ButtonLink>
         </div>
       </main>
     </div>

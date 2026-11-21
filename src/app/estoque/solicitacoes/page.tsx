@@ -3,7 +3,21 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import Sidebar from "@/components/Sidebar";
+import { Search } from "lucide-react";
+
+// ======================================================
+// INÍCIO - MS2 ESTOQUE
+// Integração com os componentes compartilhados da Bia
+// ======================================================
+
+import { MENU_ESTOQUE } from "@/auth/menus";
+import { Sidebar } from "@/components/layout/Sidebar";
+import {
+  Button,
+  ButtonLink,
+} from "@/components/ui/Button";
+
+// FIM - MS2 ESTOQUE
 
 // TIPOS DE DADOS
 type StatusSolicitacao =
@@ -20,6 +34,7 @@ type Solicitacao = {
 };
 
 // HOSPITAIS UTILIZADOS NA SIMULAÇÃO
+// Mantidos conforme o arquivo original.
 const hospitais = [
   "Hosp Munic Souza Aguiar",
   "Hosp Munic Miguel Couto",
@@ -92,6 +107,7 @@ const registrosIniciais: {
 
 // GERAR 42 SOLICITAÇÕES SIMULADAS
 // IDs: TR-009 ATÉ TR-050
+// MS2 ESTOQUE: lógica original preservada.
 const solicitacoes: Solicitacao[] = Array.from(
   { length: 42 },
   (_, indice) => {
@@ -127,7 +143,9 @@ const solicitacoes: Solicitacao[] = Array.from(
       id: `TR-${String(numero).padStart(3, "0")}`,
       data: data.toISOString().slice(0, 10),
       hospital:
-        hospitais[indiceAdicional % hospitais.length],
+        hospitais[
+          indiceAdicional % hospitais.length
+        ],
       tipoSanguineo:
         tiposSanguineos[
           indiceAdicional % tiposSanguineos.length
@@ -140,38 +158,26 @@ const solicitacoes: Solicitacao[] = Array.from(
 // CONFIGURAÇÃO DA PAGINAÇÃO
 const ITENS_POR_PAGINA = 8;
 
+// ======================================================
+// MS2 ESTOQUE
+// Usuário provisório até a integração da autenticação
+// ======================================================
+
+const usuarioEstoque = {
+  nome: "Usuário de teste",
+  cargo: "Estoque",
+};
+
 // FORMATAR DATA
-function formatarData(data: string) {
+function formatarData(data: string): string {
   const [ano, mes, dia] = data.split("-");
   return `${dia}/${mes}/${ano}`;
 }
 
-// ÍCONE DE LUPA
-function IconeLupa({
-  tamanho = 22,
-}: {
-  tamanho?: number;
-}) {
-  return (
-    <svg
-      width={tamanho}
-      height={tamanho}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="11" cy="11" r="7" />
-      <path d="m16 16 5 5" />
-    </svg>
-  );
-}
-
-// COR DO STATUS
-function corStatus(status: StatusSolicitacao) {
+// CORES DOS STATUS
+function corStatus(
+  status: StatusSolicitacao
+): string {
   switch (status) {
     case "Entregue":
       return "bg-[#D0EEE8]";
@@ -184,10 +190,25 @@ function corStatus(status: StatusSolicitacao) {
   }
 }
 
-// PÁGINA DE SOLICITAÇÕES
+// ======================================================
+// MS2 ESTOQUE
+// Lista de Solicitações adaptada ao Design System da Bia.
+//
+// Funcionalidades preservadas:
+// - Pesquisa
+// - Dados simulados
+// - Tabela
+// - Paginação
+// - Consulta de detalhes
+// - Navegação para Lista de Transações
+// ======================================================
+
 export default function SolicitacoesPage() {
+  // PESQUISA E PAGINAÇÃO
   const [busca, setBusca] = useState("");
-  const [paginaAtual, setPaginaAtual] = useState(1);
+
+  const [paginaAtual, setPaginaAtual] =
+    useState(1);
 
   // FILTRAR SOLICITAÇÕES
   const solicitacoesFiltradas = useMemo(() => {
@@ -238,16 +259,28 @@ export default function SolicitacoesPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#E1E4E9]">
+    <div className="flex min-h-screen bg-cinza-azulado">
 
-      {/* MENU LATERAL COMPARTILHADO */}
-      <Sidebar />
+      {/* ========================================
+          MS2 ESTOQUE
+          Sidebar compartilhado criado pela Bia
+          ======================================== */}
+      <Sidebar
+        itens={MENU_ESTOQUE}
+        usuario={usuarioEstoque}
+      />
 
       {/* CONTEÚDO PRINCIPAL */}
       <main className="min-w-0 flex-1 px-10 py-12">
 
         {/* BARRA DE PESQUISA */}
-        <div className="mb-10 flex overflow-hidden rounded-md border border-gray-300 bg-white">
+        <form
+          role="search"
+          onSubmit={(evento) =>
+            evento.preventDefault()
+          }
+          className="mb-10 flex overflow-hidden rounded-md border border-gray-300 bg-card"
+        >
           <input
             type="search"
             placeholder="Buscar solicitação"
@@ -256,29 +289,35 @@ export default function SolicitacoesPage() {
             onChange={(evento) =>
               atualizarBusca(evento.target.value)
             }
-            className="w-full px-4 py-3 text-gray-700 outline-none"
+            className="w-full px-4 py-3 text-preto outline-none placeholder:text-preto/50"
           />
 
-          <button
-            type="button"
-            aria-label="Pesquisar"
-            className="flex items-center justify-center border-l border-gray-300 bg-gray-200 px-5 text-gray-700"
+          {/* MS2 ESTOQUE: BUTTON DA BIA */}
+          <Button
+            type="submit"
+            variante="suave"
+            tamanho="sm"
+            aria-label="Pesquisar solicitações"
+            className="rounded-none border-l border-gray-300 px-5"
           >
-            <IconeLupa />
-          </button>
-        </div>
+            <Search
+              size={22}
+              aria-hidden="true"
+            />
+          </Button>
+        </form>
 
         {/* TÍTULO */}
-        <h1 className="mb-10 text-2xl font-bold text-[#203A60]">
+        <h1 className="mb-10 text-2xl font-bold text-azul-1">
           Solicitações dos Hospitais
         </h1>
 
         {/* TABELA DE SOLICITAÇÕES */}
-        <div className="overflow-x-auto bg-white">
+        <div className="overflow-x-auto bg-card">
           <table className="w-full border-collapse text-center text-sm">
 
             {/* CABEÇALHO */}
-            <thead className="bg-[#D1E1F1] text-[#203A60]">
+            <thead className="bg-[#D1E1F1] text-azul-1">
               <tr>
                 <th className="px-4 py-3">
                   ID da Solicitação
@@ -308,55 +347,63 @@ export default function SolicitacoesPage() {
 
             {/* REGISTROS */}
             <tbody>
-              {solicitacoesPagina.map((solicitacao) => (
-                <tr
-                  key={solicitacao.id}
-                  className="h-[66px] border-b border-gray-100 text-black hover:bg-gray-50"
-                >
-                  {/* ID */}
-                  <td className="px-4 font-semibold">
-                    {solicitacao.id}
-                  </td>
+              {solicitacoesPagina.map(
+                (solicitacao) => (
+                  <tr
+                    key={solicitacao.id}
+                    className="h-[66px] border-b border-gray-100 text-preto hover:bg-gray-50"
+                  >
 
-                  {/* DATA */}
-                  <td className="px-4">
-                    {formatarData(solicitacao.data)}
-                  </td>
+                    {/* ID DA SOLICITAÇÃO */}
+                    <td className="px-4 font-semibold">
+                      {solicitacao.id}
+                    </td>
 
-                  {/* HOSPITAL */}
-                  <td className="px-4 font-medium">
-                    {solicitacao.hospital}
-                  </td>
+                    {/* DATA */}
+                    <td className="px-4">
+                      {formatarData(
+                        solicitacao.data
+                      )}
+                    </td>
 
-                  {/* TIPO SANGUÍNEO */}
-                  <td className="px-4 font-semibold">
-                    {solicitacao.tipoSanguineo}
-                  </td>
+                    {/* HOSPITAL SOLICITANTE */}
+                    <td className="px-4 font-medium">
+                      {solicitacao.hospital}
+                    </td>
 
-                  {/* STATUS */}
-                  <td className="px-4">
-                    <span
-                      className={`inline-block min-w-28 rounded-full px-3 py-2 font-medium text-[#203A60] ${corStatus(
-                        solicitacao.status
-                      )}`}
-                    >
-                      {solicitacao.status}
-                    </span>
-                  </td>
+                    {/* TIPO SANGUÍNEO */}
+                    <td className="px-4 font-semibold">
+                      {solicitacao.tipoSanguineo}
+                    </td>
 
-                  {/* DETALHES */}
-                  <td className="px-4">
-                    <Link
-                      href={`/estoque/solicitacoes/${solicitacao.id}`}
-                      aria-label={`Detalhes da solicitação ${solicitacao.id}`}
-                      title={`Consultar ${solicitacao.id}`}
-                      className="inline-flex rounded p-2 text-black hover:bg-gray-200"
-                    >
-                      <IconeLupa tamanho={23} />
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+                    {/* STATUS */}
+                    <td className="px-4">
+                      <span
+                        className={`inline-block min-w-28 rounded-full px-3 py-2 font-medium text-azul-1 ${corStatus(
+                          solicitacao.status
+                        )}`}
+                      >
+                        {solicitacao.status}
+                      </span>
+                    </td>
+
+                    {/* DETALHES */}
+                    <td className="px-4">
+                      <Link
+                        href={`/estoque/solicitacoes/${solicitacao.id}`}
+                        aria-label={`Detalhes da solicitação ${solicitacao.id}`}
+                        title={`Consultar ${solicitacao.id}`}
+                        className="inline-flex rounded p-2 text-azul-1 hover:bg-azul-3/30"
+                      >
+                        <Search
+                          size={23}
+                          aria-hidden="true"
+                        />
+                      </Link>
+                    </td>
+                  </tr>
+                )
+              )}
 
               {/* SEM RESULTADOS */}
               {solicitacoesPagina.length === 0 && (
@@ -376,11 +423,14 @@ export default function SolicitacoesPage() {
         {/* PAGINAÇÃO */}
         <div className="mt-12 flex items-center justify-between">
 
+          {/* CONTROLES DE PAGINAÇÃO */}
           <div className="flex items-center gap-3">
 
             {/* PÁGINA ANTERIOR */}
-            <button
+            <Button
               type="button"
+              variante="suave"
+              tamanho="sm"
               onClick={() =>
                 setPaginaAtual((pagina) =>
                   Math.max(1, pagina - 1)
@@ -388,19 +438,25 @@ export default function SolicitacoesPage() {
               }
               disabled={paginaAtual === 1}
               aria-label="Página anterior"
-              className="px-2 text-xl text-black disabled:opacity-30"
+              className="min-w-8 !px-2 !py-1 text-base"
             >
               ‹
-            </button>
+            </Button>
 
             {/* NÚMEROS DAS PÁGINAS */}
             {Array.from(
               { length: totalPaginas },
               (_, indice) => indice + 1
             ).map((pagina) => (
-              <button
+              <Button
                 key={pagina}
                 type="button"
+                variante={
+                  paginaAtual === pagina
+                    ? "secundario"
+                    : "suave"
+                }
+                tamanho="sm"
                 onClick={() =>
                   setPaginaAtual(pagina)
                 }
@@ -410,36 +466,37 @@ export default function SolicitacoesPage() {
                     ? "page"
                     : undefined
                 }
-                className={`rounded px-2 py-1 text-sm font-semibold ${
-                  paginaAtual === pagina
-                    ? "bg-blue-600 text-white"
-                    : "text-black hover:bg-gray-300"
-                }`}
+                className="min-w-8 !px-2 !py-1"
               >
                 {pagina}
-              </button>
+              </Button>
             ))}
 
             {/* PRÓXIMA PÁGINA */}
-            <button
+            <Button
               type="button"
+              variante="suave"
+              tamanho="sm"
               onClick={() =>
                 setPaginaAtual((pagina) =>
-                  Math.min(totalPaginas, pagina + 1)
+                  Math.min(
+                    totalPaginas,
+                    pagina + 1
+                  )
                 )
               }
               disabled={
                 paginaAtual === totalPaginas
               }
               aria-label="Próxima página"
-              className="px-2 text-xl text-black disabled:opacity-30"
+              className="min-w-8 !px-2 !py-1 text-base"
             >
               ›
-            </button>
+            </Button>
           </div>
 
-          {/* CONTADOR DE REGISTROS */}
-          <p className="text-sm font-semibold text-black">
+          {/* CONTADOR */}
+          <p className="text-sm font-semibold text-preto">
             {solicitacoesFiltradas.length === 0
               ? 0
               : inicio + 1}
@@ -453,14 +510,20 @@ export default function SolicitacoesPage() {
           </p>
         </div>
 
-        {/* BOTÃO VOLTAR */}
+        {/* ========================================
+            MS2 ESTOQUE
+            Botão Voltar padronizado da Bia
+            Destino: Lista de Transações
+            ======================================== */}
         <div className="mt-14 flex justify-end">
-          <Link
+          <ButtonLink
             href="/estoque/transacoes"
-            className="flex h-11 items-center justify-center rounded-lg border border-black bg-white px-10 text-sm font-semibold text-black hover:bg-gray-100"
+            variante="voltar"
+            tamanho="md"
+            className="min-w-32"
           >
             Voltar
-          </Link>
+          </ButtonLink>
         </div>
       </main>
     </div>

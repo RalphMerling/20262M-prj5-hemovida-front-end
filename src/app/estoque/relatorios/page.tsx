@@ -4,7 +4,14 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import Sidebar from "@/components/Sidebar";
+
+// ======================================================
+// MS2 - ESTOQUE: componentes compartilhados da Bia
+// ======================================================
+import { MENU_ESTOQUE } from "@/auth/menus";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { Button, ButtonLink } from "@/components/ui/Button";
+// FIM - MS2 ESTOQUE
 
 // TIPOS DE DADOS
 type StatusBolsa = "Disponível" | "Em uso" | "Vencida";
@@ -174,7 +181,7 @@ function GraficoRosca({
         {valores.map((valor, index) => (
           <div
             key={coresStatus[index].nome}
-            className="flex items-center gap-3 text-sm text-black"
+            className="flex items-center gap-3 text-sm text-preto"
           >
             <span
               className="h-4 w-4 rounded-full"
@@ -268,7 +275,7 @@ function GraficoBarras({
         {dados.map((item) => (
           <div
             key={item.tipo}
-            className="min-w-0 flex-1 text-center text-xs font-medium text-black"
+            className="min-w-0 flex-1 text-center text-xs font-medium text-preto"
           >
             {item.tipo}
           </div>
@@ -278,7 +285,20 @@ function GraficoBarras({
   );
 }
 
-// PÁGINA DE RELATÓRIO DE ESTOQUE
+// ======================================================
+// MS2 - ESTOQUE
+// Usuário provisório até integrar a autenticação
+// ======================================================
+const usuarioEstoque = {
+  nome: "Usuário de teste",
+  cargo: "Estoque",
+};
+
+// ======================================================
+// MS2 - ESTOQUE
+// Relatório adaptado aos componentes e estilos da Bia
+// Preservados: filtros, indicadores, gráficos e navegação
+// ======================================================
 export default function RelatoriosEstoquePage() {
   const [periodo, setPeriodo] = useState("30");
   const [tipo, setTipo] = useState("Todos");
@@ -363,28 +383,34 @@ export default function RelatoriosEstoquePage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#E1E4E9]">
+    <div className="flex min-h-screen bg-cinza-azulado">
 
-      {/* MENU LATERAL COMPARTILHADO */}
-      <Sidebar />
+      {/* ========================================
+          MS2 - ESTOQUE
+          Sidebar compartilhado criado pela Bia
+          ======================================== */}
+      <Sidebar
+        itens={MENU_ESTOQUE}
+        usuario={usuarioEstoque}
+      />
 
       {/* CONTEÚDO PRINCIPAL */}
       <main className="min-w-0 flex-1 px-10 py-12">
 
         {/* TÍTULO */}
-        <h1 className="mb-7 text-2xl font-bold text-[#203A60]">
+        <h1 className="mb-7 text-2xl font-bold text-azul-1">
           Relatórios
         </h1>
 
         {/* ABAS */}
         <div className="mb-12 flex gap-6">
-          <span className="border-b-[3px] border-[#203A60] pb-2 text-lg font-bold text-[#203A60]">
+          <span className="border-b-[3px] border-azul-1 pb-2 text-lg font-bold text-azul-1">
             Estoque
           </span>
 
           <Link
             href="/estoque/relatorios/transacoes"
-            className="pb-2 text-lg font-semibold text-[#71819B] hover:text-[#203A60]"
+            className="pb-2 text-lg font-semibold text-[#71819B] hover:text-azul-1"
           >
             Transações
           </Link>
@@ -399,7 +425,7 @@ export default function RelatoriosEstoquePage() {
           <div>
             <label
               htmlFor="periodo"
-              className="mb-3 block text-lg font-semibold text-[#203A60]"
+              className="mb-3 block text-lg font-semibold text-azul-1"
             >
               Período
             </label>
@@ -410,17 +436,20 @@ export default function RelatoriosEstoquePage() {
               onChange={(e) =>
                 setPeriodo(e.target.value)
               }
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-3 text-sm text-black"
+              className="w-full rounded-md border border-gray-300 bg-card px-3 py-3 text-sm text-preto"
             >
               <option value="7">
                 Últimos 7 dias
               </option>
+
               <option value="30">
                 Últimos 30 dias
               </option>
+
               <option value="90">
                 Últimos 90 dias
               </option>
+
               <option value="Todos">
                 Todo o período
               </option>
@@ -431,7 +460,7 @@ export default function RelatoriosEstoquePage() {
           <div>
             <label
               htmlFor="tipoSanguineo"
-              className="mb-3 block text-lg font-semibold text-[#203A60]"
+              className="mb-3 block text-lg font-semibold text-azul-1"
             >
               Tipo sanguíneo
             </label>
@@ -442,7 +471,7 @@ export default function RelatoriosEstoquePage() {
               onChange={(e) =>
                 setTipo(e.target.value)
               }
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-3 text-sm text-black"
+              className="w-full rounded-md border border-gray-300 bg-card px-3 py-3 text-sm text-preto"
             >
               <option value="Todos">
                 Todos
@@ -463,7 +492,7 @@ export default function RelatoriosEstoquePage() {
           <div>
             <label
               htmlFor="status"
-              className="mb-3 block text-lg font-semibold text-[#203A60]"
+              className="mb-3 block text-lg font-semibold text-azul-1"
             >
               Status
             </label>
@@ -474,30 +503,38 @@ export default function RelatoriosEstoquePage() {
               onChange={(e) =>
                 setStatus(e.target.value)
               }
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-3 text-sm text-black"
+              className="w-full rounded-md border border-gray-300 bg-card px-3 py-3 text-sm text-preto"
             >
               <option value="Todos">
                 Todos
               </option>
+
               <option value="Disponível">
                 Disponível
               </option>
+
               <option value="Em uso">
                 Em uso
               </option>
+
               <option value="Vencida">
                 Vencida
               </option>
             </select>
           </div>
 
-          {/* GERAR RELATÓRIO */}
-          <button
+          {/* ========================================
+              MS2 - ESTOQUE
+              Botão compartilhado da Bia
+              ======================================== */}
+          <Button
             type="submit"
-            className="h-[46px] whitespace-nowrap rounded border border-blue-900 bg-[#1673EB] px-5 text-sm font-semibold text-white hover:bg-blue-700"
+            variante="secundario"
+            tamanho="sm"
+            className="h-[46px] px-5 text-sm"
           >
             Gerar relatório
-          </button>
+          </Button>
         </form>
 
         {/* INDICADORES */}
@@ -522,13 +559,13 @@ export default function RelatoriosEstoquePage() {
           ].map((indicador) => (
             <div
               key={indicador.titulo}
-              className="flex min-h-[100px] flex-col justify-between bg-white p-5"
+              className="flex min-h-[100px] flex-col justify-between bg-card p-5"
             >
               <h2 className="text-sm font-medium text-gray-800">
                 {indicador.titulo}
               </h2>
 
-              <p className="text-4xl font-bold text-[#B32630]">
+              <p className="text-4xl font-bold text-vermelho-1">
                 {indicador.valor}
               </p>
             </div>
@@ -538,9 +575,9 @@ export default function RelatoriosEstoquePage() {
         {/* GRÁFICOS */}
         <section className="grid grid-cols-[1fr_2fr] gap-4">
 
-          {/* ROSCA */}
-          <div className="rounded-lg bg-white px-5 py-7 shadow-sm">
-            <h2 className="mb-6 text-center text-sm font-semibold text-black">
+          {/* GRÁFICO DE ROSCA */}
+          <div className="rounded-lg bg-card px-5 py-7 shadow-sm">
+            <h2 className="mb-6 text-center text-sm font-semibold text-preto">
               Status das bolsas
             </h2>
 
@@ -551,9 +588,9 @@ export default function RelatoriosEstoquePage() {
             />
           </div>
 
-          {/* BARRAS */}
-          <div className="bg-white px-7 py-7">
-            <h2 className="mb-6 text-sm font-semibold text-black">
+          {/* GRÁFICO DE BARRAS */}
+          <div className="bg-card px-7 py-7">
+            <h2 className="mb-6 text-sm font-semibold text-preto">
               Estoque por tipo sanguíneo
             </h2>
 
@@ -563,23 +600,30 @@ export default function RelatoriosEstoquePage() {
           </div>
         </section>
 
-        {/* OBSERVAÇÃO SOBRE OS DADOS */}
-       {/*  <p className="mt-5 text-xs text-gray-600">
+        {/* OBSERVAÇÃO SOBRE OS DADOS SIMULADOS
+        <p className="mt-5 text-xs text-gray-600">
           Dados simulados para fins acadêmicos.
           Referência: 11/11/2026.
           O filtro de período considera a data de
           entrada das bolsas na simulação.
           Nenhuma informação foi consultada na API.
-        </p> */}
+        </p>
+        */}
 
-        {/* VOLTAR */}
+        {/* ========================================
+            MS2 - ESTOQUE
+            Botão Voltar padronizado da Bia
+            Destino: Lista de Transações
+            ======================================== */}
         <div className="mt-10 flex justify-end">
-          <Link
+          <ButtonLink
             href="/estoque/transacoes"
-            className="rounded-lg border border-black bg-white px-10 py-3 text-sm font-semibold text-black hover:bg-gray-100"
+            variante="voltar"
+            tamanho="md"
+            className="min-w-32"
           >
             Voltar
-          </Link>
+          </ButtonLink>
         </div>
 
         {/* VERIFICAÇÃO DO TOTAL */}

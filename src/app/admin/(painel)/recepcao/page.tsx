@@ -13,11 +13,14 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EstadoVazio } from "@/components/ui/EstadoVazio";
+import { GotaCarregando } from "@/components/ui/GotaCarregando";
 import { Modal } from "@/components/ui/Modal";
-import { doadoresMock } from "@/data/mock";
 import type { DoadorComHistorico, ItemHistorico } from "@/data/mock";
 import { formatarDataBR } from "@/lib/formatadores";
 import { diasParaProximaDoacao, intervaloEmDias } from "@/lib/regras";
+import { mensagemDoErro } from "@/services/api";
+import { buscarHistoricoDoDoador } from "@/services/doacoesService";
+import { atualizarDoador, buscarDoadorPorCpf } from "@/services/doadoresService";
 
 // A data da última doação CONCLUÍDA (doações canceladas não contam para o intervalo).
 function ultimaConcluida(historico: ItemHistorico[]): string | null {
@@ -30,6 +33,7 @@ type Mensagem = { tipo: "erro" | "sucesso"; texto: string };
 export default function Recepcao() {
   const [cpf, setCpf] = useState("");
   const [erroBusca, setErroBusca] = useState("");
+  const [buscando, setBuscando] = useState(false);
   const [encontrado, setEncontrado] = useState<DoadorComHistorico | null>(null);
   const [diasDeEspera, setDiasDeEspera] = useState(0);
   const [doacaoAberta, setDoacaoAberta] = useState(false);
@@ -37,7 +41,7 @@ export default function Recepcao() {
   const [cadastrando, setCadastrando] = useState(false);
   const [mensagem, setMensagem] = useState<Mensagem | null>(null);
 
-  function buscar(evento: FormEvent<HTMLFormElement>) {
+  async function buscar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     setMensagem(null);
     setDoacaoAberta(false);
@@ -48,38 +52,54 @@ export default function Recepcao() {
       return;
     }
 
-    // TODO: trocar pela API: doadoresService.buscarPorCpf(cpf). O 404 vira "não encontrado".
-    const achado = doadoresMock.find((item) => item.doador.doador_cpf === cpf);
-    if (!achado) {
-      setErroBusca("Nenhum doador encontrado com esse CPF.");
-      setEncontrado(null);
-      return;
-    }
-
     setErroBusca("");
-    setEncontrado(achado);
+    setEncontrado(null);
+    setBuscando(true);
 
-    // O cálculo usa a data de hoje
-    const ultima = ultimaConcluida(achado.historico);
-    setDiasDeEspera(ultima ? diasParaProximaDoacao(achado.doador.doador_genero, ultima) : 0);
+    try {
+      const doador = await buscarDoadorPorCpf(cpf);
+      if (!doador) {
+        setErroBusca("Nenhum doador encontrado com esse CPF.");
+        return;
+      }
+
+      const historico = await buscarHistoricoDoDoador(doador.doador_id);
+      setEncontrado({ doador, historico });
+
+      // O cálculo usa a data de hoje
+      const ultima = ultimaConcluida(historico);
+      setDiasDeEspera(ultima ? diasParaProximaDoacao(doador.doador_genero, ultima) : 0);
+    } catch (erro) {
+      setErroBusca(mensagemDoErro(erro));
+    } finally {
+      setBuscando(false);
+    }
   }
 
   function abrirDoacao() {
     if (!encontrado) return;
-    // TODO: POST de nova doação. O doador passa a aparecer na fila de triagem.
+    // TODO: POST de nova doação. O doador passa a aparecer na fila de triagem. (O back ainda não tem essa rota.)
     setDoacaoAberta(true);
     setMensagem({ tipo: "sucesso", texto: `Doação aberta para ${encontrado.doador.doador_nome}. Ela já aparece na fila de triagem.` });
   }
 
-  function salvarEdicao(dados: DadosEditaveis) {
-    // TODO: doadoresService.atualizar(id, dados). Erros possíveis: 400 validação, 403 perfil.
-    setEncontrado((atual) => (atual ? { ...atual, doador: { ...atual.doador, ...dados } } : atual));
-    setEditando(false);
-    setMensagem({ tipo: "sucesso", texto: "Dados do doador atualizados." });
+  async function salvarEdicao(dados: DadosEditaveis) {
+    if (!encontrado) return;
+
+    try {
+      const atualizado = await atualizarDoador(encontrado.doador.doador_id, dados);
+      setEncontrado((atual) => (atual ? { ...atual, doador: atualizado } : atual));
+      setMensagem({ tipo: "sucesso", texto: "Dados do doador atualizados." });
+    } catch (erro) {
+      setMensagem({ tipo: "erro", texto: mensagemDoErro(erro) });
+    } finally {
+      setEditando(false);
+    }
   }
 
   function cadastrarDoador(dados: DadosCadastro) {
-    // TODO: com a API, criar o doador e depois abrir a ficha dele aqui (buscarPorCpf).
+    // TODO: com a API, chamar cadastrarDoador() do doadoresService. Falta definir de onde vem o usuario_id
+    // quando é a recepção que cadastra, e depois abrir a ficha do doador aqui.
     setCadastrando(false);
     setErroBusca("");
     setMensagem({ tipo: "sucesso", texto: `Doador ${dados.nome} cadastrado com sucesso.` });
@@ -107,7 +127,8 @@ export default function Recepcao() {
               <button
                 type="submit"
                 aria-label="Buscar doador"
-                className="cursor-pointer rounded-r-lg border border-l-0 border-preto bg-azul-3 px-5 text-azul-1 transition hover:brightness-95"
+                disabled={buscando}
+                className="cursor-pointer rounded-r-lg border border-l-0 border-preto bg-azul-3 px-5 text-azul-1 transition hover:brightness-95 disabled:cursor-wait disabled:opacity-60"
               >
                 <Search size={22} />
               </button>
@@ -133,7 +154,13 @@ export default function Recepcao() {
         </div>
       )}
 
-      {!encontrado && (
+      {buscando && (
+        <div className="flex justify-center py-8 md:col-span-3">
+          <GotaCarregando texto="Buscando doador..." />
+        </div>
+      )}
+
+      {!encontrado && !buscando && (
         <EstadoVazio
           className="md:col-span-3"
           icone={<UserSearch size={32} />}

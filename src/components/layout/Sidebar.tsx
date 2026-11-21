@@ -1,16 +1,42 @@
 "use client";
 
-import { ClipboardList, Home, Inbox, Power, Syringe } from "lucide-react";
+import {
+  ClipboardList,
+  Home,
+  Inbox,
+  Power,
+  Syringe,
+
+  // ==========================================
+  // INÍCIO - MS2 ESTOQUE
+  // Ícones adicionados para o módulo Estoque
+  // ==========================================
+  Package,
+  ArrowLeftRight,
+  FileText,
+  // FIM - MS2 ESTOQUE
+} from "lucide-react";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ItemMenu } from "@/auth/menus";
 import { Logo } from "./Logo";
 
 const icones = {
+  // Ícones originais - Bia
   inicio: Home,
   recepcao: Inbox,
   triagem: ClipboardList,
   doacao: Syringe,
+
+  // ==========================================
+  // INÍCIO - MS2 ESTOQUE
+  // Ícones de navegação do módulo Estoque
+  // ==========================================
+  estoque: Package,
+  transacoes: ArrowLeftRight,
+  relatorios: FileText,
+  // FIM - MS2 ESTOQUE
 };
 
 interface SidebarProps {
@@ -31,8 +57,45 @@ export function Sidebar({ itens, usuario }: SidebarProps) {
         <nav aria-label="Menu principal" className="flex flex-col gap-2">
           {itens.map(({ rotulo, href, icone }) => {
             const Icone = icones[icone];
-            // "/admin" só fica ativo na rota exata. As outras também ficam ativas em subpáginas.
-            const ativo = href === "/admin" ? rotaAtual === href : rotaAtual.startsWith(href);
+
+            // ==========================================
+            // INÍCIO - MS2 ESTOQUE
+            //
+            // Regra para identificar a página ativa:
+            //
+            // Início:
+            //   Destaca somente a rota exata.
+            //
+            // Estoque:
+            //   Destaca Dashboard e Consulta de Bolsas.
+            //
+            // Transações:
+            //   Destaca Transações e Solicitações.
+            //
+            // Relatórios:
+            //   Destaca os relatórios de Estoque
+            //   e de Transações.
+            //
+            // As rotas administrativas da Bia
+            // continuam funcionando normalmente.
+            // ==========================================
+
+            const ativo =
+              href === "/" || href === "/admin"
+                ? rotaAtual === href
+
+                : href === "/estoque"
+                ? rotaAtual === "/estoque" ||
+                  rotaAtual.startsWith("/estoque/consulta")
+
+                : href === "/estoque/transacoes"
+                ? rotaAtual.startsWith("/estoque/transacoes") ||
+                  rotaAtual.startsWith("/estoque/solicitacoes")
+
+                : rotaAtual === href ||
+                  rotaAtual.startsWith(`${href}/`);
+
+            // FIM - MS2 ESTOQUE
 
             return (
               <Link
@@ -59,7 +122,10 @@ export function Sidebar({ itens, usuario }: SidebarProps) {
         </div>
 
         {/* TODO: trocar por uma ação de logout que apaga o cookie */}
-        <Link href="/admin/login" className="flex items-center gap-3 px-4 font-semibold text-vermelho-2">
+        <Link
+          href="/admin/login"
+          className="flex items-center gap-3 px-4 font-semibold text-vermelho-2"
+        >
           <Power size={20} />
           Sair
         </Link>

@@ -4,7 +4,20 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import Sidebar from "@/components/Sidebar";
+
+// ======================================================
+// INÍCIO - MS2 ESTOQUE
+// Integração com os componentes compartilhados da Bia
+// ======================================================
+
+import { MENU_ESTOQUE } from "@/auth/menus";
+import { Sidebar } from "@/components/layout/Sidebar";
+import {
+  Button,
+  ButtonLink,
+} from "@/components/ui/Button";
+
+// FIM - MS2 ESTOQUE
 
 // TIPOS DE DADOS
 type TipoTransacao =
@@ -46,6 +59,16 @@ const tiposSanguineos = [
   "AB-",
 ];
 
+// ======================================================
+// MS2 ESTOQUE
+// Usuário provisório até integração da autenticação
+// ======================================================
+
+const usuarioEstoque = {
+  nome: "Usuário de teste",
+  cargo: "Estoque",
+};
+
 // FORMATAR DATA
 function formatarData(data: string): string {
   const [ano, mes, dia] = data.split("-");
@@ -53,6 +76,7 @@ function formatarData(data: string): string {
 }
 
 // BUSCAR TRANSAÇÃO SIMULADA
+// Mantém os mesmos dados da Lista de Transações.
 function buscarTransacao(id: string): Transacao | null {
   if (!/^TR-\d{3}$/.test(id)) {
     return null;
@@ -99,14 +123,17 @@ function buscarTransacao(id: string): Transacao | null {
     tipo,
     data: data.toISOString().slice(0, 10),
     status,
+
     solicitante:
       tipo === "Saída para Hospital"
         ? "João da Silva"
         : "—",
+
     hospital:
       tipo === "Saída para Hospital"
         ? "Hosp Munic Pedro II"
         : "—",
+
     bolsas: [
       {
         id: `BOL-${String(numero).padStart(3, "0")}`,
@@ -120,7 +147,7 @@ function buscarTransacao(id: string): Transacao | null {
   };
 }
 
-// CAMPO DE CONSULTA
+// CAMPO SOMENTE PARA CONSULTA
 function Campo({
   titulo,
   valor,
@@ -130,28 +157,46 @@ function Campo({
 }) {
   return (
     <div className="min-w-0">
-      <p className="mb-3 text-xl font-semibold text-black">
+      <p className="mb-3 text-xl font-semibold text-preto">
         {titulo}
       </p>
 
-      <div className="flex h-9 items-center rounded-md border border-[#C5C5C5] bg-white px-4 text-sm font-semibold text-black">
+      <div className="flex h-9 items-center rounded-md border border-gray-300 bg-card px-4 text-sm font-semibold text-preto">
         {valor}
       </div>
     </div>
   );
 }
 
-// ESTILO DE CAMPO EDITÁVEL
+// ESTILO DOS CAMPOS EDITÁVEIS
+// MS2 ESTOQUE: utilizando cores globais da Bia.
 const classeInput =
-  "h-9 w-full rounded-md border border-[#1673EB] " +
-  "bg-white px-4 text-sm font-semibold text-black outline-none";
+  "h-9 w-full rounded-md border border-azul-2 " +
+  "bg-card px-4 text-sm font-semibold text-preto " +
+  "outline-none focus:ring-1 focus:ring-azul-2";
 
-// PÁGINA DE DETALHES DA TRANSAÇÃO
+const classeLabel =
+  "mb-3 block text-xl font-semibold text-preto";
+
+// ======================================================
+// MS2 ESTOQUE
+// Detalhes da Transação adaptados ao Design System
+// compartilhado da Bia.
+//
+// Mantidos:
+// - Layout original do Figma
+// - Dados e histórico simulado
+// - Edição somente para Pendente
+// - Cancelamento somente para Pendente
+// - Retorno à Lista de Transações
+// ======================================================
+
 export default function DetalhesTransacaoPage() {
   const params = useParams<{ id: string }>();
 
   const transacao = buscarTransacao(params.id);
 
+  // ESTADOS DA SIMULAÇÃO
   const [statusLocal, setStatusLocal] =
     useState<StatusTransacao | null>(null);
 
@@ -169,20 +214,28 @@ export default function DetalhesTransacaoPage() {
   // TRANSAÇÃO NÃO ENCONTRADA
   if (!transacao) {
     return (
-      <div className="flex min-h-screen bg-[#E1E4E9]">
-        <Sidebar />
+      <div className="flex min-h-screen bg-cinza-azulado">
+
+        {/* MS2 ESTOQUE: SIDEBAR DA BIA */}
+        <Sidebar
+          itens={MENU_ESTOQUE}
+          usuario={usuarioEstoque}
+        />
 
         <main className="flex-1 p-12">
-          <h1 className="text-2xl font-bold text-[#203A60]">
+          <h1 className="text-2xl font-bold text-azul-1">
             Transação não encontrada
           </h1>
 
-          <Link
-            href="/estoque/transacoes"
-            className="mt-6 inline-block text-blue-700 underline"
-          >
-            Voltar para Transações
-          </Link>
+          <div className="mt-6">
+            <ButtonLink
+              href="/estoque/transacoes"
+              variante="voltar"
+              tamanho="sm"
+            >
+              Voltar para Transações
+            </ButtonLink>
+          </div>
         </main>
       </div>
     );
@@ -200,19 +253,24 @@ export default function DetalhesTransacaoPage() {
   const hospital =
     hospitalEditado ?? transacao.hospital;
 
-  // BOTÕES SOMENTE PARA PENDENTES
+  // ==================================================
+  // MS2 ESTOQUE
+  // REGRA DE NEGÓCIO:
+  // Editar e Cancelar somente para status Pendente.
+  // ==================================================
+
   const pendente = status === "Pendente";
 
   const ehSaidaHospital =
     transacao.tipo === "Saída para Hospital";
 
-  // EXIBIR TIPO SIMPLIFICADO COMO NO FIGMA
+  // TIPO RESUMIDO CONFORME FIGMA
   const tipoResumido =
     transacao.tipo === "Entrada por doação"
       ? "Entrada"
       : "Saída";
 
-  // CORES DO STATUS
+  // CORES DOS STATUS
   const corStatus =
     status === "Entregue"
       ? "bg-[#D0EEE8]"
@@ -258,6 +316,7 @@ export default function DetalhesTransacaoPage() {
   function descartarEdicao() {
     setSolicitanteEditado(null);
     setHospitalEditado(null);
+
     setEditando(false);
     setErro("");
     setMensagem("");
@@ -288,33 +347,41 @@ export default function DetalhesTransacaoPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#E1E4E9]">
+    <div className="flex min-h-screen bg-cinza-azulado">
 
-      {/* MENU COMPARTILHADO */}
-      <Sidebar />
+      {/* ========================================
+          MS2 ESTOQUE
+          Novo Sidebar compartilhado da Bia
+          ======================================== */}
+      <Sidebar
+        itens={MENU_ESTOQUE}
+        usuario={usuarioEstoque}
+      />
 
       {/* CONTEÚDO PRINCIPAL */}
       <main className="flex min-w-0 flex-1 flex-col px-12 py-12">
 
-        {/* TÍTULO */}
+        {/* TÍTULO E SETA DE RETORNO */}
         <div className="mb-24 flex items-center gap-5">
+
           <Link
             href="/estoque/transacoes"
             aria-label="Voltar para Transações"
-            className="text-4xl text-black hover:text-gray-600"
+            className="text-4xl text-preto hover:text-azul-1"
           >
             ←
           </Link>
 
-          <h1 className="text-2xl font-bold text-[#203A60]">
+          <h1 className="text-2xl font-bold text-azul-1">
             Detalhes da transação
           </h1>
         </div>
 
-        {/* PRIMEIRA LINHA: ID, TIPO, DATA E STATUS */}
+        {/* PRIMEIRA LINHA:
+            ID, TIPO, DATA E STATUS */}
         <section className="grid grid-cols-[1.4fr_0.85fr_0.85fr_0.65fr] items-end gap-10 px-2">
 
-          {/* ID */}
+          {/* ID DA TRANSAÇÃO */}
           <Campo
             titulo="ID da transação"
             valor={transacao.id}
@@ -334,13 +401,14 @@ export default function DetalhesTransacaoPage() {
 
           {/* STATUS */}
           <div className="min-w-0">
-            <p className="mb-3 text-xl font-semibold text-black">
+
+            <p className="mb-3 text-xl font-semibold text-preto">
               Status
             </p>
 
             <div className="flex h-9 items-center">
               <span
-                className={`inline-flex min-w-28 items-center justify-center rounded-full px-4 py-2 text-sm font-semibold text-[#203A60] ${corStatus}`}
+                className={`inline-flex min-w-28 items-center justify-center rounded-full px-4 py-2 text-sm font-semibold text-azul-1 ${corStatus}`}
               >
                 {status}
               </span>
@@ -348,16 +416,18 @@ export default function DetalhesTransacaoPage() {
           </div>
         </section>
 
-        {/* SEGUNDA LINHA: SOLICITANTE, HOSPITAL E AÇÕES */}
+        {/* SEGUNDA LINHA:
+            SOLICITANTE, HOSPITAL E AÇÕES */}
         <section className="mt-20 grid grid-cols-[1fr_1.3fr_auto] items-end gap-8 px-2">
 
           {/* DADOS DO SOLICITANTE */}
           <div className="min-w-0">
+
             {editando && ehSaidaHospital ? (
               <>
                 <label
                   htmlFor="solicitante"
-                  className="mb-3 block text-xl font-semibold text-black"
+                  className={classeLabel}
                 >
                   Dados do solicitante
                 </label>
@@ -384,11 +454,12 @@ export default function DetalhesTransacaoPage() {
 
           {/* HOSPITAL / UNIDADE */}
           <div className="min-w-0">
+
             {editando && ehSaidaHospital ? (
               <>
                 <label
                   htmlFor="hospital"
-                  className="mb-3 block text-xl font-semibold text-black"
+                  className={classeLabel}
                 >
                   Hospital / Unidade
                 </label>
@@ -411,46 +482,64 @@ export default function DetalhesTransacaoPage() {
             )}
           </div>
 
-          {/* EDITAR E CANCELAR: SOMENTE PENDENTES */}
+          {/* ========================================
+              MS2 ESTOQUE
+              BOTÕES COMPARTILHADOS DA BIA
+
+              Editar e Cancelar:
+              somente para status Pendente.
+              ======================================== */}
           <div className="flex h-9 items-center gap-3">
 
             {pendente && (
               <>
                 {editando ? (
                   <>
-                    <button
+                    {/* SALVAR ALTERAÇÕES */}
+                    <Button
                       type="button"
+                      variante="secundario"
+                      tamanho="sm"
                       onClick={salvarEdicao}
-                      className="flex h-9 items-center justify-center rounded-md border border-blue-900 bg-[#1673EB] px-4 text-sm font-semibold text-white hover:bg-blue-700"
+                      className="h-9 px-4 text-sm"
                     >
                       Salvar
-                    </button>
+                    </Button>
 
-                    <button
+                    {/* DESCARTAR ALTERAÇÕES */}
+                    <Button
                       type="button"
+                      variante="voltar"
+                      tamanho="sm"
                       onClick={descartarEdicao}
-                      className="flex h-9 items-center justify-center rounded-md border border-gray-600 bg-white px-4 text-sm font-semibold text-black hover:bg-gray-100"
+                      className="h-9 px-4 text-sm"
                     >
                       Descartar
-                    </button>
+                    </Button>
                   </>
                 ) : (
                   <>
-                    <button
+                    {/* EDITAR TRANSAÇÃO */}
+                    <Button
                       type="button"
+                      variante="secundario"
+                      tamanho="sm"
                       onClick={iniciarEdicao}
-                      className="flex h-9 items-center justify-center rounded-md border border-blue-900 bg-[#1673EB] px-4 text-sm font-semibold text-white hover:bg-blue-700"
+                      className="h-9 px-4 text-sm"
                     >
                       Editar
-                    </button>
+                    </Button>
 
-                    <button
+                    {/* CANCELAR TRANSAÇÃO */}
+                    <Button
                       type="button"
+                      variante="cancelar"
+                      tamanho="sm"
                       onClick={cancelarTransacao}
-                      className="flex h-9 items-center justify-center rounded-md border border-[#720D16] bg-[#A51D2A] px-4 text-sm font-semibold text-white hover:bg-red-800"
+                      className="h-9 px-4 text-sm"
                     >
                       Cancelar
-                    </button>
+                    </Button>
                   </>
                 )}
               </>
@@ -460,15 +549,16 @@ export default function DetalhesTransacaoPage() {
 
         {/* BOLSAS UTILIZADAS */}
         <section className="mt-24 px-2">
-          <h2 className="mb-6 text-xl font-bold text-black">
+
+          <h2 className="mb-6 text-xl font-bold text-preto">
             Bolsas Utilizadas
           </h2>
 
-          <div className="overflow-x-auto bg-white">
+          <div className="overflow-x-auto bg-card">
             <table className="w-full border-collapse text-center text-sm">
 
               {/* CABEÇALHO */}
-              <thead className="bg-[#D1E1F1] text-[#203A60]">
+              <thead className="bg-[#D1E1F1] text-azul-1">
                 <tr>
                   <th className="px-4 py-3">
                     ID da Bolsa (s)
@@ -497,24 +587,29 @@ export default function DetalhesTransacaoPage() {
                 {transacao.bolsas.map((bolsa) => (
                   <tr
                     key={bolsa.id}
-                    className="h-[86px] border-b border-gray-100 text-black"
+                    className="h-[86px] border-b border-gray-100 text-preto"
                   >
+                    {/* ID DA BOLSA */}
                     <td className="px-4 font-semibold">
                       {bolsa.id}
                     </td>
 
+                    {/* TIPO SANGUÍNEO */}
                     <td className="px-4 font-semibold">
                       {bolsa.tipoSanguineo}
                     </td>
 
+                    {/* VOLUME */}
                     <td className="px-4 font-semibold">
                       {bolsa.volume}
                     </td>
 
+                    {/* DATA DA COLETA */}
                     <td className="px-4 font-semibold">
                       {formatarData(bolsa.coleta)}
                     </td>
 
+                    {/* VALIDADE */}
                     <td className="px-4 font-semibold">
                       {formatarData(bolsa.validade)}
                     </td>
@@ -539,20 +634,28 @@ export default function DetalhesTransacaoPage() {
         {mensagem && (
           <p
             role="status"
-            className="mx-2 mt-6 rounded-md bg-white px-4 py-3 font-medium text-[#203A60]"
+            className="mx-2 mt-6 rounded-md bg-card px-4 py-3 font-medium text-azul-1"
           >
             {mensagem}
           </p>
         )}
 
-        {/* BOTÃO VOLTAR NO RODAPÉ */}
+        {/* ========================================
+            MS2 ESTOQUE
+            Botão Voltar padronizado da Bia
+            Destino: Lista de Transações
+            ======================================== */}
         <div className="mt-auto flex justify-end px-2 pt-24">
-          <Link
+
+          <ButtonLink
             href="/estoque/transacoes"
-            className="flex h-11 min-w-32 items-center justify-center rounded-lg border border-black bg-white px-8 text-sm font-semibold text-black hover:bg-gray-100"
+            variante="voltar"
+            tamanho="md"
+            className="min-w-32"
           >
             Voltar
-          </Link>
+          </ButtonLink>
+
         </div>
       </main>
     </div>

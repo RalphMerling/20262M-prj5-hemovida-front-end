@@ -1,8 +1,10 @@
-import { PerfilDoador } from "@/components/doador/PerfilDoador";
-import { doadorLogadoMock, historicoDoadorMock } from "@/data/mock";
+"use client";
 
-export const metadata = { title: "Meu perfil" };
+import { PerfilDoador } from "@/components/doador/PerfilDoador";
+import { usePortal } from "@/components/doador/PortalProvider";
 
 export default function PerfilPage() {
-  return <PerfilDoador doador={doadorLogadoMock} ultimaDoacao={historicoDoadorMock[0]?.data ?? null} />;
+  const { doador, historico } = usePortal();
+
+  return <PerfilDoador doador={doador} ultimaDoacao={historico[0]?.data ?? null} />;
 }

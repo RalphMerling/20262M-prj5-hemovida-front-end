@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# variáveis de ambiente locais (não vão pro GitHub)
+.env.local
