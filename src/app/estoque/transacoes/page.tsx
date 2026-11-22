@@ -2,37 +2,28 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
-
-// ======================================================
-// INÍCIO - MS2 ESTOQUE
-// Integração com os componentes compartilhados da Bia
-// ======================================================
 
 import { MENU_ESTOQUE } from "@/auth/menus";
 import { Sidebar } from "@/components/layout/Sidebar";
-import {
-  Button,
-  ButtonLink,
-} from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 
-// FIM - MS2 ESTOQUE
+// ======================================================
+// MS2 - ESTOQUE
+// Tipos das transações
+// ======================================================
 
-// TIPOS DE TRANSAÇÃO DO HISTÓRICO
-// Saídas hospitalares são criadas pelo fluxo de Solicitações.
 type TipoTransacao =
   | "Entrada por doação"
   | "Saída para Hospital"
   | "Saída por descarte";
 
-// STATUS DA TRANSAÇÃO
 type StatusTransacao =
   | "Entregue"
   | "Pendente"
   | "Cancelada";
 
-// ESTRUTURA DE UMA TRANSAÇÃO
 type Transacao = {
   id: string;
   data: string;
@@ -42,7 +33,13 @@ type Transacao = {
   status: StatusTransacao;
 };
 
-// TIPOS SANGUÍNEOS
+type FiltroTipo = "Todas" | TipoTransacao;
+
+const usuarioEstoque = {
+  nome: "Usuário de teste",
+  cargo: "Estoque",
+};
+
 const tiposSanguineos = [
   "O+",
   "A+",
@@ -54,8 +51,14 @@ const tiposSanguineos = [
   "AB-",
 ];
 
-// DADOS SIMULADOS: 42 TRANSAÇÕES
-// Mantidos conforme a versão anterior do MS2 Estoque.
+const ITENS_POR_PAGINA = 8;
+
+// ======================================================
+// MS2 - ESTOQUE
+// Dados simulados das transações
+// Mantidos 42 registros para demonstração.
+// ======================================================
+
 const transacoes: Transacao[] = Array.from(
   { length: 42 },
   (_, indice) => {
@@ -95,26 +98,80 @@ const transacoes: Transacao[] = Array.from(
   }
 );
 
-// CONFIGURAÇÃO DA PAGINAÇÃO
-const ITENS_POR_PAGINA = 8;
-
 // ======================================================
-// MS2 ESTOQUE
-// Usuário provisório até a integração da autenticação
+// MS2 - ESTOQUE
+// Formatação de datas
 // ======================================================
 
-const usuarioEstoque = {
-  nome: "Usuário de teste",
-  cargo: "Estoque",
-};
-
-// FORMATAR DATA
 function formatarData(data: string): string {
   const [ano, mes, dia] = data.split("-");
   return `${dia}/${mes}/${ano}`;
 }
 
-// CORES DOS STATUS
+function obterDataHoje(): string {
+  const agora = new Date();
+
+  const ano = agora.getFullYear();
+  const mes = String(agora.getMonth() + 1).padStart(
+    2,
+    "0"
+  );
+  const dia = String(agora.getDate()).padStart(2, "0");
+
+  return `${ano}-${mes}-${dia}`;
+}
+
+// ======================================================
+// MS2 - ESTOQUE
+// NOVO: identificar mês atual
+// ======================================================
+
+function obterMesAtual(): string {
+  return obterDataHoje().slice(0, 7);
+}
+
+function formatarMes(mes: string): string {
+  const [ano, numeroMes] = mes.split("-").map(Number);
+
+  const nomesMeses = [
+    "janeiro",
+    "fevereiro",
+    "março",
+    "abril",
+    "maio",
+    "junho",
+    "julho",
+    "agosto",
+    "setembro",
+    "outubro",
+    "novembro",
+    "dezembro",
+  ];
+
+  return `${nomesMeses[numeroMes - 1]} de ${ano}`;
+}
+
+function dataValida(valor: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+    return false;
+  }
+
+  const [ano, mes, dia] = valor.split("-").map(Number);
+
+  const data = new Date(Date.UTC(ano, mes - 1, dia));
+
+  return (
+    data.getUTCFullYear() === ano &&
+    data.getUTCMonth() === mes - 1 &&
+    data.getUTCDate() === dia
+  );
+}
+
+// ======================================================
+// MS2 - ESTOQUE
+// Cor dos status
+// ======================================================
+
 function corStatus(status: StatusTransacao): string {
   switch (status) {
     case "Entregue":
@@ -129,25 +186,124 @@ function corStatus(status: StatusTransacao): string {
 }
 
 // ======================================================
-// MS2 ESTOQUE
-// Lista de transações adaptada ao Design System da Bia.
-// Mantidas pesquisa, tabela, paginação e navegação.
+// MS2 - ESTOQUE
+// Tela de Transações
 // ======================================================
 
 export default function TransacoesPage() {
-  // ESTADOS DA PESQUISA E PAGINAÇÃO
   const [busca, setBusca] = useState("");
   const [paginaAtual, setPaginaAtual] = useState(1);
 
-  // FILTRAR TRANSAÇÕES
+  // Filtro por data específica.
+  const [dataSelecionada, setDataSelecionada] =
+    useState("");
+
+  // ====================================================
+  // MS2 - ESTOQUE
+  // NOVO: filtro por tipo de transação
+  // ====================================================
+
+  const [tipoSelecionado, setTipoSelecionado] =
+    useState<FiltroTipo>("Todas");
+
+  // ====================================================
+  // MS2 - ESTOQUE
+  // NOVO: filtro de mês recebido pelo Dashboard
+  // ====================================================
+
+  const [mesSelecionado, setMesSelecionado] =
+    useState("");
+
+  // ====================================================
+  // MS2 - ESTOQUE
+  // Ler parâmetros enviados pelo Dashboard
+  //
+  // ?data=hoje
+  //
+  // ?tipo=entrada-doacao&periodo=mes-atual
+  // ====================================================
+
+  useEffect(() => {
+    const parametros = new URLSearchParams(
+      window.location.search
+    );
+
+    const dataURL = parametros.get("data");
+    const tipoURL = parametros.get("tipo");
+    const periodoURL = parametros.get("periodo");
+
+    // FILTRO POR DATA
+    if (dataURL === "hoje") {
+      setDataSelecionada(obterDataHoje());
+    } else if (dataURL && dataValida(dataURL)) {
+      setDataSelecionada(dataURL);
+    } else {
+      setDataSelecionada("");
+    }
+
+    // FILTRO POR TIPO
+    if (tipoURL === "entrada-doacao") {
+      setTipoSelecionado("Entrada por doação");
+    } else if (tipoURL === "saida-descarte") {
+      setTipoSelecionado("Saída por descarte");
+    } else if (tipoURL === "saida-hospital") {
+      setTipoSelecionado("Saída para Hospital");
+    } else {
+      setTipoSelecionado("Todas");
+    }
+
+    // FILTRO POR MÊS
+    if (periodoURL === "mes-atual") {
+      setMesSelecionado(obterMesAtual());
+    } else {
+      setMesSelecionado("");
+    }
+
+    setPaginaAtual(1);
+  }, []);
+
+  // ====================================================
+  // MS2 - ESTOQUE
+  // Pesquisa combinada:
+  // texto + tipo + data + mês
+  // ====================================================
+
   const transacoesFiltradas = useMemo(() => {
     const termo = busca.trim().toLowerCase();
 
-    if (!termo) {
-      return transacoes;
-    }
-
     return transacoes.filter((transacao) => {
+      // FILTRO POR TIPO
+      const atendeTipo =
+        tipoSelecionado === "Todas" ||
+        transacao.tipo === tipoSelecionado;
+
+      if (!atendeTipo) {
+        return false;
+      }
+
+      // FILTRO POR DATA ESPECÍFICA
+      const atendeData =
+        !dataSelecionada ||
+        transacao.data === dataSelecionada;
+
+      if (!atendeData) {
+        return false;
+      }
+
+      // NOVO: FILTRO PELO MÊS
+      const atendeMes =
+        !mesSelecionado ||
+        transacao.data.slice(0, 7) === mesSelecionado;
+
+      if (!atendeMes) {
+        return false;
+      }
+
+      // FILTRO POR TEXTO
+      if (!termo) {
+        return true;
+      }
+
       return (
         transacao.id.toLowerCase().includes(termo) ||
         transacao.tipo.toLowerCase().includes(termo) ||
@@ -160,9 +316,18 @@ export default function TransacoesPage() {
         transacao.data.includes(termo)
       );
     });
-  }, [busca]);
+  }, [
+    busca,
+    dataSelecionada,
+    tipoSelecionado,
+    mesSelecionado,
+  ]);
 
-  // PAGINAÇÃO
+  // ====================================================
+  // MS2 - ESTOQUE
+  // Paginação
+  // ====================================================
+
   const totalPaginas = Math.max(
     1,
     Math.ceil(
@@ -178,28 +343,69 @@ export default function TransacoesPage() {
     inicio + ITENS_POR_PAGINA
   );
 
-  // ATUALIZAR PESQUISA
   function atualizarBusca(valor: string) {
     setBusca(valor);
     setPaginaAtual(1);
   }
 
+  function atualizarTipo(valor: FiltroTipo) {
+    setTipoSelecionado(valor);
+    setPaginaAtual(1);
+  }
+
+  function atualizarData(valor: string) {
+    setDataSelecionada(valor);
+
+    // Uma data manual substitui o filtro de mês.
+    if (valor) {
+      setMesSelecionado("");
+    }
+
+    setPaginaAtual(1);
+  }
+
+  // ====================================================
+  // MS2 - ESTOQUE
+  // NOVO: limpar os filtros recebidos do Dashboard
+  // ====================================================
+
+  function limparFiltros() {
+    setBusca("");
+    setDataSelecionada("");
+    setTipoSelecionado("Todas");
+    setMesSelecionado("");
+    setPaginaAtual(1);
+
+    // Remove os parâmetros da URL.
+    const url = new URL(window.location.href);
+
+    url.searchParams.delete("data");
+    url.searchParams.delete("tipo");
+    url.searchParams.delete("periodo");
+
+    window.history.replaceState(
+      null,
+      "",
+      url.pathname + url.search + url.hash
+    );
+  }
+
+  const existemFiltros =
+    Boolean(busca.trim()) ||
+    Boolean(dataSelecionada) ||
+    Boolean(mesSelecionado) ||
+    tipoSelecionado !== "Todas";
+
   return (
     <div className="flex min-h-screen bg-cinza-azulado">
-
-      {/* ========================================
-          MS2 ESTOQUE
-          Novo Sidebar compartilhado da Bia
-          ======================================== */}
+      {/* SIDEBAR COMPARTILHADO */}
       <Sidebar
         itens={MENU_ESTOQUE}
         usuario={usuarioEstoque}
       />
 
-      {/* CONTEÚDO PRINCIPAL */}
       <main className="min-w-0 flex-1 px-10 py-12">
-
-        {/* BARRA DE PESQUISA */}
+        {/* PESQUISA */}
         <form
           role="search"
           onSubmit={(evento) => evento.preventDefault()}
@@ -216,7 +422,6 @@ export default function TransacoesPage() {
             className="w-full px-4 py-3 text-preto outline-none placeholder:text-preto/50"
           />
 
-          {/* MS2 ESTOQUE: BUTTON DA BIA */}
           <Button
             type="submit"
             variante="suave"
@@ -228,20 +433,13 @@ export default function TransacoesPage() {
           </Button>
         </form>
 
-        {/* TÍTULO E AÇÕES */}
+        {/* TÍTULO E BOTÕES */}
         <div className="mb-10 flex items-center justify-between gap-5">
-
           <h1 className="text-2xl font-bold text-azul-1">
             Transações
           </h1>
 
-          {/* ========================================
-              MS2 ESTOQUE
-              Botões padronizados com ButtonLink da Bia
-              Ordem mantida: Nova transação, Solicitações
-              ======================================== */}
           <div className="flex items-center gap-4">
-
             <ButtonLink
               href="/estoque/transacoes/nova"
               variante="secundario"
@@ -262,76 +460,173 @@ export default function TransacoesPage() {
           </div>
         </div>
 
+        {/* ==========================================
+            MS2 - ESTOQUE
+            NOVO: FILTROS DA CONSULTA
+            ========================================== */}
+        <div className="mb-8 flex flex-wrap items-end gap-4">
+          {/* TIPO DE TRANSAÇÃO */}
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="filtro-tipo-transacao"
+              className="text-sm font-semibold text-azul-1"
+            >
+              Tipo de transação
+            </label>
+
+            <select
+              id="filtro-tipo-transacao"
+              value={tipoSelecionado}
+              onChange={(evento) =>
+                atualizarTipo(
+                  evento.target.value as FiltroTipo
+                )
+              }
+              className="h-11 min-w-52 rounded-md border border-gray-300 bg-card px-3 text-sm text-preto"
+            >
+              <option value="Todas">
+                Todas
+              </option>
+
+              <option value="Entrada por doação">
+                Entrada por doação
+              </option>
+
+              <option value="Saída por descarte">
+                Saída por descarte
+              </option>
+
+              <option value="Saída para Hospital">
+                Saída para Hospital
+              </option>
+            </select>
+          </div>
+
+          {/* DATA ESPECÍFICA */}
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="filtro-data-transacoes"
+              className="text-sm font-semibold text-azul-1"
+            >
+              Data da transação
+            </label>
+
+            <input
+              id="filtro-data-transacoes"
+              type="date"
+              value={dataSelecionada}
+              onChange={(evento) =>
+                atualizarData(evento.target.value)
+              }
+              className="h-11 rounded-md border border-gray-300 bg-card px-4 text-sm text-preto"
+            />
+          </div>
+
+          {/* NOVO: MÊS ATUAL */}
+          {mesSelecionado && (
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-semibold text-azul-1">
+                Período selecionado
+              </span>
+
+              <div className="flex h-11 items-center rounded-md border border-[#E8D09E] bg-[#FFF0D4] px-4 text-sm font-medium text-azul-1">
+                {formatarMes(mesSelecionado)}
+              </div>
+            </div>
+          )}
+
+          {/* LIMPAR FILTROS */}
+          {existemFiltros && (
+            <Button
+              type="button"
+              variante="voltar"
+              tamanho="sm"
+              className="h-11 px-5 text-sm"
+              onClick={limparFiltros}
+            >
+              Limpar filtros
+            </Button>
+          )}
+        </div>
+
+        {/* ==========================================
+            MS2 - ESTOQUE
+            NOVO: RESUMO DOS RESULTADOS
+            ========================================== */}
+        {existemFiltros && (
+          <p
+            className="mb-6 text-sm font-medium text-azul-1"
+            role="status"
+          >
+            {transacoesFiltradas.length} transação(ões)
+            encontrada(s)
+            {tipoSelecionado !== "Todas"
+              ? ` — ${tipoSelecionado}`
+              : ""}
+            {mesSelecionado
+              ? ` — ${formatarMes(mesSelecionado)}`
+              : ""}
+            {dataSelecionada
+              ? ` — ${formatarData(dataSelecionada)}`
+              : ""}
+          </p>
+        )}
+
         {/* TABELA DE TRANSAÇÕES */}
         <div className="overflow-x-auto bg-card">
           <table className="w-full border-collapse text-center text-sm">
-
-            {/* CABEÇALHO */}
             <thead className="bg-[#D1E1F1] text-azul-1">
               <tr>
                 <th className="px-3 py-3">
                   ID da Transação
                 </th>
-
                 <th className="px-3 py-3">
                   Data
                 </th>
-
                 <th className="px-3 py-3">
                   Tipo de Transação
                 </th>
-
                 <th className="px-3 py-3">
                   ID da Bolsa
                 </th>
-
                 <th className="px-3 py-3">
                   Tipo Sanguíneo
                 </th>
-
                 <th className="px-3 py-3">
                   Status
                 </th>
-
                 <th className="px-3 py-3">
                   Detalhes
                 </th>
               </tr>
             </thead>
 
-            {/* REGISTROS */}
             <tbody>
               {transacoesPagina.map((transacao) => (
                 <tr
                   key={transacao.id}
                   className="h-[66px] border-b border-gray-100 text-preto hover:bg-gray-50"
                 >
-                  {/* ID */}
                   <td className="px-3 font-semibold">
                     {transacao.id}
                   </td>
 
-                  {/* DATA */}
                   <td className="px-3">
                     {formatarData(transacao.data)}
                   </td>
 
-                  {/* TIPO */}
                   <td className="px-3 font-medium">
                     {transacao.tipo}
                   </td>
 
-                  {/* BOLSA */}
                   <td className="px-3 font-medium">
                     {transacao.bolsa}
                   </td>
 
-                  {/* TIPO SANGUÍNEO */}
                   <td className="px-3 font-semibold">
                     {transacao.tipoSanguineo}
                   </td>
 
-                  {/* STATUS */}
                   <td className="px-3">
                     <span
                       className={`inline-block min-w-28 rounded-full px-3 py-2 font-medium text-azul-1 ${corStatus(
@@ -342,7 +637,6 @@ export default function TransacoesPage() {
                     </span>
                   </td>
 
-                  {/* DETALHES */}
                   <td className="px-3">
                     <Link
                       href={`/estoque/transacoes/${transacao.id}`}
@@ -359,14 +653,14 @@ export default function TransacoesPage() {
                 </tr>
               ))}
 
-              {/* SEM RESULTADOS */}
               {transacoesPagina.length === 0 && (
                 <tr>
                   <td
                     colSpan={7}
                     className="px-4 py-12 text-gray-600"
                   >
-                    Nenhuma transação encontrada.
+                    Nenhuma transação encontrada para
+                    os filtros selecionados.
                   </td>
                 </tr>
               )}
@@ -376,10 +670,7 @@ export default function TransacoesPage() {
 
         {/* PAGINAÇÃO */}
         <div className="mt-12 flex items-center justify-between">
-
-          {/* CONTROLES DE PAGINAÇÃO */}
           <div className="flex items-center gap-3">
-
             {/* ANTERIOR */}
             <Button
               type="button"
@@ -411,9 +702,7 @@ export default function TransacoesPage() {
                     : "suave"
                 }
                 tamanho="sm"
-                onClick={() =>
-                  setPaginaAtual(pagina)
-                }
+                onClick={() => setPaginaAtual(pagina)}
                 aria-label={`Página ${pagina}`}
                 aria-current={
                   paginaAtual === pagina
@@ -459,11 +748,7 @@ export default function TransacoesPage() {
           </p>
         </div>
 
-        {/* ========================================
-            MS2 ESTOQUE
-            Botão Voltar padronizado da Bia
-            Destino: Dashboard do Estoque
-            ======================================== */}
+        {/* BOTÃO VOLTAR */}
         <div className="mt-14 flex justify-end">
           <ButtonLink
             href="/estoque"

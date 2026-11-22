@@ -1,21 +1,13 @@
 
-import { Search } from "lucide-react";
-
-// ======================================================
-// INÍCIO - MS2 ESTOQUE
-// Integração com os componentes compartilhados da Bia
-// ======================================================
+import { Search, UserRound } from "lucide-react";
 
 import { MENU_ESTOQUE } from "@/auth/menus";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { Button } from "@/components/ui/Button";
-
-// FIM - MS2 ESTOQUE
+import { ButtonLink } from "@/components/ui/Button";
 
 // ======================================================
-// MS2 ESTOQUE
-// Identificação temporária do usuário
-// Futuramente será obtida pelo sistema de autenticação
+// MS2 - ESTOQUE
+// Usuário temporário
 // ======================================================
 
 const usuarioEstoque = {
@@ -23,7 +15,7 @@ const usuarioEstoque = {
   cargo: "Estoque",
 };
 
-// ÍCONE DE GOTA DE SANGUE
+// Ícone de gota
 function IconeGota({
   tamanho = 30,
 }: {
@@ -48,7 +40,11 @@ function IconeGota({
   );
 }
 
-// ESTOQUE POR TIPO SANGUÍNEO
+// ======================================================
+// MS2 - ESTOQUE
+// Dados simulados
+// ======================================================
+
 const tiposSanguineos = [
   { tipo: "A+", quantidade: 50, status: "Adequado" },
   { tipo: "A-", quantidade: 21, status: "Adequado" },
@@ -60,13 +56,12 @@ const tiposSanguineos = [
   { tipo: "AB-", quantidade: 10, status: "Estoque Baixo" },
 ];
 
-// TOTAL DE BOLSAS
 const totalBolsas = tiposSanguineos.reduce(
   (total, item) => total + item.quantidade,
   0
 );
 
-// INDICADORES DO DASHBOARD
+// Indicadores do Dashboard
 const indicadores = [
   {
     titulo: "Total de bolsas no estoque",
@@ -81,7 +76,7 @@ const indicadores = [
   {
     titulo: "Doadores no mês",
     valor: 86,
-    icone: "♙",
+    icone: "usuario",
   },
   {
     titulo: "Bolsas em alerta (vencimento)",
@@ -91,53 +86,24 @@ const indicadores = [
 ];
 
 // ======================================================
-// MS2 ESTOQUE
-// Dashboard atualizado para utilizar os componentes
-// e estilos compartilhados do frontend HemoVida
+// MS2 - ESTOQUE
+// Dashboard
 // ======================================================
 
 export default function EstoquePage() {
   return (
     <div className="flex min-h-screen bg-cinza-azulado">
-
-      {/* SIDEBAR COMPARTILHADO - BIA */}
-      {/* MS2 ESTOQUE: configuração de menu específica */}
       <Sidebar
         itens={MENU_ESTOQUE}
         usuario={usuarioEstoque}
       />
 
-      {/* CONTEÚDO PRINCIPAL */}
       <main className="min-w-0 flex-1 px-10 py-12">
-
-        {/* PESQUISA */}
-        <div className="mb-10 flex overflow-hidden rounded-md border border-gray-300 bg-card">
-
-          <input
-            type="text"
-            placeholder="Buscar"
-            aria-label="Buscar"
-            className="w-full px-4 py-3 text-preto outline-none"
-          />
-
-          {/* MS2 ESTOQUE: botão padronizado da Bia */}
-          <Button
-            type="button"
-            variante="suave"
-            tamanho="sm"
-            aria-label="Pesquisar"
-            className="rounded-none border-l border-gray-300 px-5"
-          >
-            <Search size={22} />
-          </Button>
-        </div>
-
-        {/* TÍTULO */}
         <h1 className="mb-12 text-2xl font-bold text-azul-1">
           Aqui você acompanha o estoque e as transações do sistema
         </h1>
 
-        {/* INDICADORES SUPERIORES */}
+        {/* INDICADORES */}
         <section className="mb-16 grid grid-cols-4 gap-6">
           {indicadores.map((indicador) => (
             <div
@@ -148,6 +114,12 @@ export default function EstoquePage() {
               <div className="mb-3 flex h-9 items-center text-vermelho-1">
                 {indicador.icone === "gota" ? (
                   <IconeGota tamanho={30} />
+                ) : indicador.icone === "usuario" ? (
+                  <UserRound
+                    size={30}
+                    strokeWidth={1.8}
+                    aria-hidden="true"
+                  />
                 ) : (
                   <span
                     className="text-3xl"
@@ -158,15 +130,75 @@ export default function EstoquePage() {
                 )}
               </div>
 
-              {/* DESCRIÇÃO */}
               <h2 className="min-h-12 text-sm font-semibold text-preto">
                 {indicador.titulo}
               </h2>
 
-              {/* QUANTIDADE */}
-              <p className="mt-auto text-4xl font-bold text-vermelho-1">
-                {indicador.valor}
-              </p>
+              <div className="mt-auto flex items-end justify-between gap-2">
+                <p className="text-4xl font-bold text-vermelho-1">
+                  {indicador.valor}
+                </p>
+
+                {/* MS2 - ESTOQUE
+                    Consultar todas as bolsas */}
+                {indicador.icone === "gota" && (
+                  <ButtonLink
+                    href="/estoque/consulta"
+                    variante="voltar"
+                    tamanho="sm"
+                    className="gap-2"
+                  >
+                    <Search size={15} />
+                    Consultar
+                  </ButtonLink>
+                )}
+
+                {/* MS2 - ESTOQUE
+                    Consultar transações de hoje */}
+                {indicador.titulo === "Transações hoje" && (
+                  <ButtonLink
+                    href="/estoque/transacoes?data=hoje"
+                    variante="voltar"
+                    tamanho="sm"
+                    className="gap-2"
+                  >
+                    <Search size={15} />
+                    Consultar
+                  </ButtonLink>
+                )}
+
+                {/* ======================================
+                    MS2 - ESTOQUE
+                    NOVO: consultar entradas por doação
+                    no mês atual
+                    ====================================== */}
+                {indicador.titulo === "Doadores no mês" && (
+                  <ButtonLink
+                    href="/estoque/transacoes?tipo=entrada-doacao&periodo=mes-atual"
+                    variante="voltar"
+                    tamanho="sm"
+                    className="gap-2"
+                  >
+                    <Search size={15} />
+                    Consultar
+                  </ButtonLink>
+                )}
+
+                {/* MS2 - ESTOQUE
+                    Consultar bolsas a vencer */}
+                {indicador.titulo ===
+                  "Bolsas em alerta (vencimento)" && (
+                  <ButtonLink
+                    href="/estoque/consulta?status=a-vencer"
+                    variante="voltar"
+                    tamanho="sm"
+                    className="gap-2"
+                  >
+                    <Search size={15} />
+                    Consultar
+                  </ButtonLink>
+                )}
+              </div>
             </div>
           ))}
         </section>
@@ -183,8 +215,6 @@ export default function EstoquePage() {
                 key={item.tipo}
                 className="flex min-h-36 flex-col items-center justify-center bg-card p-4"
               >
-
-                {/* GOTA E TIPO SANGUÍNEO À ESQUERDA */}
                 <div className="mb-2 flex w-full items-center justify-start gap-3 pl-5">
                   <IconeGota tamanho={28} />
 
@@ -193,12 +223,10 @@ export default function EstoquePage() {
                   </span>
                 </div>
 
-                {/* QUANTIDADE CENTRALIZADA */}
                 <p className="mb-3 text-xl font-semibold text-preto">
                   {item.quantidade}
                 </p>
 
-                {/* STATUS CENTRALIZADO */}
                 <span
                   className={`w-full rounded-full px-3 py-1 text-center text-sm font-semibold text-azul-1 ${
                     item.status === "Adequado"
