@@ -11,30 +11,30 @@ pipeline {
             steps {
                 checkout([$class: 'GitSCM',
                     branches: [[name: '*/main']],
-                    useRemoteConfigs: [[url: 'https://github.com/RalphMerling/20262M-prj5-hemovida-front-end']]
+                    userRemoteConfigs: [[url: 'https://github.com/RalphMerling/20262M-prj5-hemovida-front-end']]
                 ])
             }
         }
 
         stage('Instalar Dependências e Compilar') {
             steps {
-                bat 'node -v'
-                bat 'npm ci'
-                bat 'npm run build'
+                sh 'node -v'
+                sh 'npm ci'
+                sh 'npm run build'
             }
         }
 
         stage('Construir Imagem Docker') {
             steps {
-                bat "docker build -t hemovida-front-end:${env.BUILD_ID} ."
+                sh "docker build -t hemovida-front-end:${env.BUILD_ID} ."
             }
         }
 
         stage('Fazer Deploy') {
             steps {
-                bat 'docker stop hemovida-front-end || exit 0'
-                bat 'docker rm -v hemovida-front-end || exit 0'
-                bat "docker run -d --name hemovida-front-end --restart unless-stopped -p 7500:80 hemovida-front-end:${env.BUILD_ID}"
+                sh 'docker stop hemovida-front-end || true'
+                sh 'docker rm -v hemovida-front-end || true'
+                sh "docker run -d --name hemovida-front-end --restart unless-stopped -p 7500:80 hemovida-front-end:${env.BUILD_ID}"
             }
         }
     }
