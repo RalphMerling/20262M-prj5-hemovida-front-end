@@ -34,7 +34,7 @@ pipeline {
             steps {
                 sh 'docker stop hemovida-front-end || true'
                 sh 'docker rm -v hemovida-front-end || true'
-                sh "docker run -d --name hemovida-front-end --restart unless-stopped -p 7500:80 hemovida-front-end:${env.BUILD_ID}"
+                sh "docker run -d --name hemovida-front-end --restart unless-stopped -p 7500:3000 hemovida-front-end:${env.BUILD_ID}"
             }
         }
     }
