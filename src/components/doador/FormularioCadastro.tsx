@@ -9,6 +9,10 @@ import { SelectField } from "@/components/form/SelectField";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { IDADE_MAXIMA, IDADE_MINIMA, idadePermitida } from "@/lib/regras";
+import type { Doador, FatorRh, Genero, TipoSanguineo } from "@/models/doador";
+import { ErroDeApi, mensagemDoErro } from "@/services/api";
+import { cadastrarDoador } from "@/services/doadoresService";
+import type { NovoDoador } from "@/services/doadoresService";
 import { buscarEnderecoPorCep } from "@/services/viacepService";
 
 const formularioInicial = {
@@ -33,13 +37,15 @@ const somenteNumeros = (texto: string) => texto.replace(/\D/g, "");
 interface FormularioCadastroProps {
   // "publico" = o próprio doador se cadastrando. "recepcao" = a recepção cadastrando um doador.
   modo: "publico" | "recepcao";
-  aoCadastrar?: (dados: DadosCadastro) => void;
+  // Chamado depois que o doador foi cadastrado com sucesso, com o doador que a API criou.
+  aoCadastrar?: (doador: Doador) => void;
 }
 
 // Formulário de cadastro do doador, usado na página /doador/cadastro e na janela da recepção.
 export function FormularioCadastro({ modo, aoCadastrar }: FormularioCadastroProps) {
   const [form, setForm] = useState<DadosCadastro>(formularioInicial);
   const [erros, setErros] = useState<Erros>({});
+  const [enviando, setEnviando] = useState(false);
   const [mensagem, setMensagem] = useState<{ tipo: "erro" | "sucesso"; texto: string } | null>(null);
 
   // Atualiza UM campo sem apagar os outros. Uso: atualizar("nome", "Maria")
@@ -95,7 +101,7 @@ export function FormularioCadastro({ modo, aoCadastrar }: FormularioCadastroProp
     return novos;
   }
 
-  function cadastrar(evento: FormEvent<HTMLFormElement>) {
+  async function cadastrar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     setMensagem(null);
 
@@ -107,12 +113,40 @@ export function FormularioCadastro({ modo, aoCadastrar }: FormularioCadastroProp
       return;
     }
 
-    // TODO: aqui entra a chamada para a API (criar o usuário no MS4 e depois o doador no MS1).
-    console.log("Dados válidos:", form);
+    // Monta o que a API espera (os nomes dos campos são os do banco).
+    const dados: NovoDoador = {
+      doador_nome: form.nome.trim(),
+      doador_cpf: form.cpf,
+      doador_data_nascimento: form.nascimento,
+      doador_genero: form.genero as Genero,
+      doador_tipo_sanguineo: form.tipoSanguineo as TipoSanguineo,
+      doador_fator_rh: form.fatorRh as FatorRh,
+      doador_telefone: form.telefone,
+      doador_email: form.email.trim(),
+      doador_cep: form.cep,
+      doador_endereco: form.endereco.trim(),
+    };
 
-    if (aoCadastrar) aoCadastrar(form);
-    if (modo === "publico") {
-      setMensagem({ tipo: "sucesso", texto: "Dados válidos! A integração com a API vem no próximo passo." });
+    setEnviando(true);
+    try {
+      const criado = await cadastrarDoador(dados);
+
+      if (modo === "publico") {
+        setForm(formularioInicial);
+        setMensagem({
+          tipo: "sucesso",
+          texto: "Cadastro realizado com sucesso! Agora você já pode entrar com o seu CPF e a data de nascimento.",
+        });
+      }
+      if (aoCadastrar) aoCadastrar(criado);
+    } catch (erro) {
+      // 409 = CPF repetido: além do aviso, marca o campo do CPF.
+      if (erro instanceof ErroDeApi && erro.status === 409) {
+        setErros((atuais) => ({ ...atuais, cpf: erro.message }));
+      }
+      setMensagem({ tipo: "erro", texto: mensagemDoErro(erro) });
+    } finally {
+      setEnviando(false);
     }
   }
 
@@ -188,8 +222,8 @@ export function FormularioCadastro({ modo, aoCadastrar }: FormularioCadastroProp
         {mensagem && <Alert tipo={mensagem.tipo}>{mensagem.texto}</Alert>}
 
         <div className="flex flex-col items-center gap-3 pt-2">
-          <Button variante="primario" type="submit" className="w-64">
-            {modo === "recepcao" ? "Cadastrar doador" : "Cadastrar"}
+          <Button variante="primario" type="submit" className="w-64" disabled={enviando}>
+            {enviando ? "Cadastrando..." : modo === "recepcao" ? "Cadastrar doador" : "Cadastrar"}
           </Button>
           {modo === "publico" && (
             <p>

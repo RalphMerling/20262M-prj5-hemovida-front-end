@@ -20,9 +20,9 @@ function converter(doador: DoadorDaApi): Doador {
   };
 }
 
-// O que o POST /doadores espera. O fator RH vai como "+" ou "-" e a data como AAAA-MM-DD.
+// O que o POST /doadores espera. NÃO tem usuario_id (a API cria sozinha).
+// O fator RH vai como "+" ou "-" e a data como AAAA-MM-DD.
 export interface NovoDoador {
-  usuario_id: number;
   doador_nome: string;
   doador_cpf: string;
   doador_data_nascimento: string;
@@ -103,13 +103,30 @@ export async function buscarDoadorPorId(id: number): Promise<Doador | null> {
   }
 }
 
-// POST /doadores (DOADOR para si mesmo, ou ADMIN/RECEPCAO)
+// POST /doadores. Rota PÚBLICA: não manda token. Serve para o doador se cadastrar e para a recepção.
+// Erros: 409 CPF já cadastrado, 400 dado inválido, 503 cadastro indisponível.
 export async function cadastrarDoador(dados: NovoDoador): Promise<Doador> {
   if (USAR_MOCK) {
     await esperar(500);
-    return { ...dados, doador_id: Date.now(), doador_status: 1 };
+
+    if (doadoresMock.some((item) => item.doador.doador_cpf === dados.doador_cpf)) {
+      throw new ErroDeApi(409, "Já existe um cadastro com esse CPF.");
+    }
+
+    // Guarda o novo doador na lista de mentira, assim a recepção consegue achar ele pelo CPF.
+    const criado: Doador = { ...dados, usuario_id: 0, doador_id: Date.now(), doador_status: 1 };
+    doadoresMock.push({ doador: criado, historico: [] });
+    return criado;
   }
-  return converter(await requisicao<DoadorDaApi>("/doadores", { metodo: "POST", corpo: dados }));
+
+  try {
+    return converter(await requisicao<DoadorDaApi>("/doadores", { metodo: "POST", corpo: dados, semToken: true }));
+  } catch (erro) {
+    if (erro instanceof ErroDeApi && erro.status === 503) {
+      throw new ErroDeApi(503, "Cadastro indisponível no momento. Tente novamente.");
+    }
+    throw erro;
+  }
 }
 
 // PUT /doadores/:id. Mesmo que a tela mande campos a mais, só os 5 permitidos seguem para a API.
