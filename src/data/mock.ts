@@ -168,4 +168,36 @@ export const avisosMock: Aviso[] = [
 
 
 // ===================== MS3 DEMANDA (Lais) =====================
-// Escreva só aqui dentro.
+import type { Pedido } from "@/models/pedido";
+
+// Números dos cartões da tela inicial do gestor.
+export const indicadoresDemandaMock = {
+  totalPeriodo: 112,
+  diasPeriodo: 30,
+  variacaoRegulares: -3.17, // % em relação ao período anterior
+  variacaoEmergenciais: 11.28,
+};
+
+// Gráficos de rosca. O "valor" é a porcentagem de cada hemocomponente.
+export const componentesRegularesMock = [
+  { nome: "Concentrado de Hemácias", valor: 60 },
+  { nome: "Plaquetas", valor: 15 },
+  { nome: "Plasma", valor: 15 },
+  { nome: "Outros", valor: 10 },
+];
+
+export const componentesEmergenciaisMock = [
+  { nome: "Concentrado de Hemácias", valor: 80 },
+  { nome: "Plaquetas", valor: 8 },
+  { nome: "Plasma", valor: 9 },
+  { nome: "Outros", valor: 3 },
+];
+
+export const pedidosMock: Pedido[] = [
+  { id: 12, tipo: "EMERGENCIAL", status: "PENDENTE", hospital: "Hospital Central", dataPedido: "2026-11-23", itens: [{ tipoSanguineo: "O-", quantidade: 6 }] },
+  { id: 11, tipo: "REGULAR", status: "APROVADO", hospital: "Hospital Central", dataPedido: "2026-11-20", itens: [{ tipoSanguineo: "A+", quantidade: 10 }, { tipoSanguineo: "O+", quantidade: 8 }] },
+  { id: 10, tipo: "REGULAR", status: "ENTREGUE", hospital: "Hospital Central", dataPedido: "2026-11-17", itens: [{ tipoSanguineo: "B+", quantidade: 12 }] },
+  { id: 9, tipo: "REGULAR", status: "ENTREGUE", hospital: "Hospital Central", dataPedido: "2026-11-12", itens: [{ tipoSanguineo: "O+", quantidade: 15 }] },
+  { id: 8, tipo: "EMERGENCIAL", status: "ENTREGUE", hospital: "Hospital Central", dataPedido: "2026-11-05", itens: [{ tipoSanguineo: "AB-", quantidade: 4 }] },
+  { id: 7, tipo: "REGULAR", status: "CANCELADO", hospital: "Hospital Central", dataPedido: "2026-10-29", itens: [{ tipoSanguineo: "A-", quantidade: 5 }] },
+];
