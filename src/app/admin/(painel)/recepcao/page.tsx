@@ -235,7 +235,7 @@ export default function Recepcao() {
       )}
 
       {encontrado && editando && (
-        <EditarDoadorModal doador={encontrado.doador} aoSalvar={salvarEdicao} aoFechar={() => setEditando(false)} />
+        <EditarDoadorModal podeEditarSangue doador={encontrado.doador} aoSalvar={salvarEdicao} aoFechar={() => setEditando(false)} />
       )}
 
       <Modal aberto={cadastrando} aoFechar={() => setCadastrando(false)} titulo="Cadastrar novo doador" grande>

@@ -5,11 +5,10 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { InputField } from "@/components/form/InputField";
 import { RadioGroup } from "@/components/form/RadioGroup";
-import { SelectField } from "@/components/form/SelectField";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { IDADE_MAXIMA, IDADE_MINIMA, idadePermitida } from "@/lib/regras";
-import type { Doador, FatorRh, Genero, TipoSanguineo } from "@/models/doador";
+import type { Doador, Genero } from "@/models/doador";
 import { ErroDeApi, mensagemDoErro } from "@/services/api";
 import { cadastrarDoador } from "@/services/doadoresService";
 import type { NovoDoador } from "@/services/doadoresService";
@@ -24,8 +23,6 @@ const formularioInicial = {
   cep: "",
   endereco: "",
   email: "",
-  tipoSanguineo: "",
-  fatorRh: "",
 };
 
 export type DadosCadastro = typeof formularioInicial;
@@ -42,6 +39,7 @@ interface FormularioCadastroProps {
 }
 
 // Formulário de cadastro do doador, usado na página /doador/cadastro e na janela da recepção.
+// O tipo sanguíneo e o fator RH NÃO são pedidos aqui: a recepção preenche depois, na ficha do doador.
 export function FormularioCadastro({ modo, aoCadastrar }: FormularioCadastroProps) {
   const [form, setForm] = useState<DadosCadastro>(formularioInicial);
   const [erros, setErros] = useState<Erros>({});
@@ -95,9 +93,6 @@ export function FormularioCadastro({ modo, aoCadastrar }: FormularioCadastroProp
     if (!form.email.trim()) novos.email = "Informe o e-mail.";
     else if (!emailValido.test(form.email)) novos.email = "Informe um e-mail válido.";
 
-    if (!form.tipoSanguineo) novos.tipoSanguineo = "Selecione o tipo.";
-    if (!form.fatorRh) novos.fatorRh = "Selecione o fator RH.";
-
     return novos;
   }
 
@@ -119,8 +114,6 @@ export function FormularioCadastro({ modo, aoCadastrar }: FormularioCadastroProp
       doador_cpf: form.cpf,
       doador_data_nascimento: form.nascimento,
       doador_genero: form.genero as Genero,
-      doador_tipo_sanguineo: form.tipoSanguineo as TipoSanguineo,
-      doador_fator_rh: form.fatorRh as FatorRh,
       doador_telefone: form.telefone,
       doador_email: form.email.trim(),
       doador_cep: form.cep,
@@ -189,7 +182,7 @@ export function FormularioCadastro({ modo, aoCadastrar }: FormularioCadastroProp
         />
       </div>
 
-      {/* Coluna da direita: endereço, contato e sangue */}
+      {/* Coluna da direita: endereço e contato */}
       <div className="flex flex-col gap-5">
         <InputField
           label="CEP"
@@ -202,22 +195,6 @@ export function FormularioCadastro({ modo, aoCadastrar }: FormularioCadastroProp
         />
         <InputField label="Endereço" value={form.endereco} onChange={(e) => atualizar("endereco", e.target.value)} erro={erros.endereco} />
         <InputField label="E-mail" type="email" value={form.email} onChange={(e) => atualizar("email", e.target.value)} erro={erros.email} />
-        <div className="grid grid-cols-2 gap-4">
-          <SelectField
-            label="Tipo sanguíneo"
-            opcoes={["A", "B", "AB", "O"]}
-            value={form.tipoSanguineo}
-            onChange={(e) => atualizar("tipoSanguineo", e.target.value)}
-            erro={erros.tipoSanguineo}
-          />
-          <SelectField
-            label="Fator RH"
-            opcoes={["+", "-"]}
-            value={form.fatorRh}
-            onChange={(e) => atualizar("fatorRh", e.target.value)}
-            erro={erros.fatorRh}
-          />
-        </div>
 
         {mensagem && <Alert tipo={mensagem.tipo}>{mensagem.texto}</Alert>}
 

@@ -1,13 +1,20 @@
 import { doadorLogadoMock, doadoresMock } from "@/data/mock";
-import type { Doador, FatorRh, Genero, TipoSanguineo } from "@/models/doador";
+import type { Doador, FatorRh, Genero} from "@/models/doador";
 import { ErroDeApi, USAR_MOCK, esperar, requisicao } from "@/services/api";
 
 // ---------- Tipos ----------
 
-// Como o doador CHEGA da API: o fator RH vem como POSITIVO/NEGATIVO e a data vem completa.
+// Como o doador CHEGA da API: o fator RH pode vir como POSITIVO/NEGATIVO ou "+"/"-" (ou null), e a data vem completa.
 interface DoadorDaApi extends Omit<Doador, "doador_fator_rh" | "doador_data_nascimento"> {
-  doador_fator_rh: "POSITIVO" | "NEGATIVO";
+  doador_fator_rh: "POSITIVO" | "NEGATIVO" | "+" | "-" | null;
   doador_data_nascimento: string; // 1995-03-10T00:00:00.000Z
+}
+
+// Traduz o fator RH para "+" ou "-" (ou null quando ainda não foi informado).
+function converterFator(fator: DoadorDaApi["doador_fator_rh"]): FatorRh | null {
+  if (fator === "POSITIVO" || fator === "+") return "+";
+  if (fator === "NEGATIVO" || fator === "-") return "-";
+  return null;
 }
 
 // Traduz para o formato que as telas usam: fator "+" ou "-" e data AAAA-MM-DD.
@@ -15,28 +22,35 @@ interface DoadorDaApi extends Omit<Doador, "doador_fator_rh" | "doador_data_nasc
 function converter(doador: DoadorDaApi): Doador {
   return {
     ...doador,
-    doador_fator_rh: doador.doador_fator_rh === "POSITIVO" ? "+" : "-",
+    doador_fator_rh: converterFator(doador.doador_fator_rh),
     doador_data_nascimento: doador.doador_data_nascimento.slice(0, 10),
   };
 }
 
-// O que o POST /doadores espera. NÃO tem usuario_id (a API cria sozinha).
-// O fator RH vai como "+" ou "-" e a data como AAAA-MM-DD.
+// O que o POST /doadores espera. NÃO tem usuario_id (a API cria sozinha) e NÃO tem
+// tipo sanguíneo nem fator RH (o doador não informa; a recepção preenche depois).
 export interface NovoDoador {
   doador_nome: string;
   doador_cpf: string;
   doador_data_nascimento: string;
   doador_genero: Genero;
-  doador_tipo_sanguineo: TipoSanguineo;
-  doador_fator_rh: FatorRh;
   doador_telefone: string;
   doador_email: string;
   doador_cep: string;
   doador_endereco: string;
 }
 
-// O PUT aceita SOMENTE estes 5 campos. Qualquer outro dá erro 400.
-const CAMPOS_EDITAVEIS = ["doador_genero", "doador_telefone", "doador_email", "doador_cep", "doador_endereco"] as const;
+// O PUT aceita SOMENTE estes campos. Qualquer outro dá erro 400.
+// O tipo sanguíneo e o fator RH só podem ser alterados por ADMIN e RECEPCAO (os outros recebem 403).
+const CAMPOS_EDITAVEIS = [
+  "doador_genero",
+  "doador_telefone",
+  "doador_email",
+  "doador_cep",
+  "doador_endereco",
+  "doador_tipo_sanguineo",
+  "doador_fator_rh",
+] as const;
 export type DadosParaAtualizar = Partial<Pick<Doador, (typeof CAMPOS_EDITAVEIS)[number]>>;
 
 export interface PaginaDeDoadores {
@@ -114,7 +128,14 @@ export async function cadastrarDoador(dados: NovoDoador): Promise<Doador> {
     }
 
     // Guarda o novo doador na lista de mentira, assim a recepção consegue achar ele pelo CPF.
-    const criado: Doador = { ...dados, usuario_id: 0, doador_id: Date.now(), doador_status: 1 };
+    const criado: Doador = {
+      ...dados,
+      doador_tipo_sanguineo: null,
+      doador_fator_rh: null,
+      usuario_id: 0,
+      doador_id: Date.now(),
+      doador_status: 1,
+    };
     doadoresMock.push({ doador: criado, historico: [] });
     return criado;
   }
@@ -129,7 +150,7 @@ export async function cadastrarDoador(dados: NovoDoador): Promise<Doador> {
   }
 }
 
-// PUT /doadores/:id. Mesmo que a tela mande campos a mais, só os 5 permitidos seguem para a API.
+// PUT /doadores/:id. Mesmo que a tela mande campos a mais, só os permitidos seguem para a API.
 export async function atualizarDoador(id: number, dados: DadosParaAtualizar): Promise<Doador> {
   const corpo: DadosParaAtualizar = {};
   for (const campo of CAMPOS_EDITAVEIS) {

@@ -20,7 +20,7 @@ function Linha({ rotulo, children }: { rotulo: string; children: ReactNode }) {
 }
 
 interface CabecalhoPacienteProps {
-    doador: Pick<Doador, "doador_nome" | "doador_cpf" | "doador_data_nascimento" | "doador_tipo_sanguineo" | "doador_fator_rh">;
+  doador: Pick<Doador, "doador_nome" | "doador_cpf" | "doador_data_nascimento" | "doador_tipo_sanguineo" | "doador_fator_rh">;
   destaque?: ReactNode;
   mostrarTipoSanguineo?: boolean;
   className?: string;
@@ -30,6 +30,9 @@ interface CabecalhoPacienteProps {
 export function CabecalhoPaciente({ doador, destaque, mostrarTipoSanguineo = false, className = "" }: CabecalhoPacienteProps) {
   // A idade depende da data de hoje: useSyncExternalStore lê isso no navegador (no servidor fica vazio).
   const idade = useSyncExternalStore(assinar, () => calcularIdade(doador.doador_data_nascimento), () => null);
+
+  // O tipo sanguíneo pode ainda não ter sido informado (a recepção preenche depois).
+  const sangueInformado = doador.doador_tipo_sanguineo !== null && doador.doador_fator_rh !== null;
 
   return (
     <Card className={className}>
@@ -43,7 +46,11 @@ export function CabecalhoPaciente({ doador, destaque, mostrarTipoSanguineo = fal
           </Linha>
           {mostrarTipoSanguineo && (
             <Linha rotulo="Tipo sanguíneo">
-              <Badge variante="sangue">{`${doador.doador_tipo_sanguineo}${doador.doador_fator_rh}`}</Badge>
+              {sangueInformado ? (
+                <Badge variante="sangue">{`${doador.doador_tipo_sanguineo}${doador.doador_fator_rh}`}</Badge>
+              ) : (
+                "Não informado"
+              )}
             </Linha>
           )}
         </div>
