@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { SelectField } from "@/components/form/SelectField";
+import { CampoJustificativa } from "@/components/demanda/CampoJustificativa";
 import { Alert } from "@/components/ui/Alert";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -14,6 +16,7 @@ import type { TipoPedido } from "@/models/pedido";
 const tiposSanguineos = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 const hemocomponentes = ["Concentrado de Hemácias", "Plaquetas", "Plasma", "Outros"];
 const quantidades = Array.from({ length: 20 }, (_, i) => String(i + 1));
+const LIMITE_JUSTIFICATIVA = 500;
 
 type Campo = "tipoSanguineo" | "hemocomponente" | "quantidade";
 
@@ -41,11 +44,16 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
   const [itens, setItens] = useState<ItemFormulario[]>([
     { chave: 1, tipoSanguineo: "", hemocomponente: "", quantidade: "1" },
   ]);
+  const [justificativa, setJustificativa] = useState("");
+  const [erroJustificativa, setErroJustificativa] = useState("");
   const [erros, setErros] = useState<Erros>({});
   const [sucesso, setSucesso] = useState(false);
   const [confirmandoCancelar, setConfirmandoCancelar] = useState(false);
 
-  const preenchido = itens.length > 1 || itens.some((i) => i.tipoSanguineo || i.hemocomponente || i.quantidade !== "1");
+  const emergencial = tipo === "EMERGENCIAL";
+  const preenchido =
+    justificativa.trim() !== "" ||
+    itens.length > 1 || itens.some((i) => i.tipoSanguineo || i.hemocomponente || i.quantidade !== "1");
 
   function atualizar(chave: number, campo: Campo, valor: string) {
     setSucesso(false);
@@ -81,15 +89,20 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
         novosErros[item.chave] = { ...novosErros[item.chave], hemocomponente: "Selecione o hemocomponente." };
       }
     }
+    // No pedido emergencial a justificativa é obrigatória.
+    const faltaJustificativa = emergencial && justificativa.trim() === "";
+    setErroJustificativa(faltaJustificativa ? "Descreva o motivo da urgência clínica." : "");
+
     setErros(novosErros);
-    if (Object.keys(novosErros).length > 0) {
+    if (Object.keys(novosErros).length > 0 || faltaJustificativa) {
       setSucesso(false);
       return;
     }
 
-    // TODO: com a API: pedidosService.criar({ tipo, itens }). Erros possíveis: 400 validação, 403 perfil.
+    // TODO: com a API: pedidosService.criar({ tipo, itens, justificativa }). Erros possíveis: 400 validação, 403 perfil.
     setSucesso(true);
     setItens([{ chave: proximaChave.current++, tipoSanguineo: "", hemocomponente: "", quantidade: "1" }]);
+    setJustificativa("");
   }
 
   return (
@@ -97,6 +110,11 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
       <form onSubmit={confirmar} noValidate // Os [&_...] deixam os campos do SelectField (compartilhado) menores só aqui, sem mexer nele.
       className="mx-auto flex max-w-2xl flex-col gap-4 py-2 [&_label]:text-sm [&_select]:py-2 [&_select]:text-sm">
         <div>
+          {emergencial && (
+            <div className="mb-3">
+              <Badge variante="erro">Emergencial</Badge>
+            </div>
+          )}
           <h2 className="text-xl text-azul-1">Itens do Pedido</h2>
           <p className="mt-1 text-xs text-preto/70">
             Adicione um ou mais itens informando tipo sanguíneo, hemocomponente e quantidade de bolsas.
@@ -156,6 +174,21 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
           <Plus size={16} aria-hidden="true" />
           Adicionar item
         </button>
+
+        {emergencial && (
+          <CampoJustificativa
+            label="Justificativa"
+            placeholder="Descreva o motivo da urgência clínica..."
+            value={justificativa}
+            maxLength={LIMITE_JUSTIFICATIVA}
+            erro={erroJustificativa}
+            onChange={(e) => {
+              setSucesso(false);
+              setErroJustificativa("");
+              setJustificativa(e.target.value);
+            }}
+          />
+        )}
 
         <div className="flex justify-end gap-3">
           <Button type="button" variante="cancelar" tamanho="sm" onClick={cancelar}>
