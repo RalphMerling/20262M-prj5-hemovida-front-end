@@ -194,10 +194,53 @@ export const componentesEmergenciaisMock = [
 ];
 
 export const pedidosMock: Pedido[] = [
-  { id: 12, tipo: "EMERGENCIAL", status: "PENDENTE", hospital: "Hospital Central", dataPedido: "2026-11-23", itens: [{ tipoSanguineo: "O-", quantidade: 6 }] },
-  { id: 11, tipo: "REGULAR", status: "APROVADO", hospital: "Hospital Central", dataPedido: "2026-11-20", itens: [{ tipoSanguineo: "A+", quantidade: 10 }, { tipoSanguineo: "O+", quantidade: 8 }] },
-  { id: 10, tipo: "REGULAR", status: "ENTREGUE", hospital: "Hospital Central", dataPedido: "2026-11-17", itens: [{ tipoSanguineo: "B+", quantidade: 12 }] },
-  { id: 9, tipo: "REGULAR", status: "ENTREGUE", hospital: "Hospital Central", dataPedido: "2026-11-12", itens: [{ tipoSanguineo: "O+", quantidade: 15 }] },
-  { id: 8, tipo: "EMERGENCIAL", status: "ENTREGUE", hospital: "Hospital Central", dataPedido: "2026-11-05", itens: [{ tipoSanguineo: "AB-", quantidade: 4 }] },
-  { id: 7, tipo: "REGULAR", status: "CANCELADO", hospital: "Hospital Central", dataPedido: "2026-10-29", itens: [{ tipoSanguineo: "A-", quantidade: 5 }] },
+  {
+    id: 12, tipo: "EMERGENCIAL", status: "REALIZADO", hospital: "Hospital Central", solicitadoPor: "Rafaela Mota",
+    criadoEm: "2026-11-23T21:40", entregaPrevista: "2026-11-24T05:00",
+    justificativa: "Hemorragia digestiva alta com instabilidade hemodinâmica.",
+    itens: [{ tipoSanguineo: "O-", hemocomponente: "Concentrado de Hemácias", quantidade: 6 }],
+  },
+  {
+    id: 11, tipo: "REGULAR", status: "EM_SEPARACAO", hospital: "Hospital Central", solicitadoPor: "Rafaela Mota",
+    criadoEm: "2026-11-20T09:15", entregaPrevista: "2026-11-25T10:00",
+    itens: [
+      { tipoSanguineo: "A+", hemocomponente: "Concentrado de Hemácias", quantidade: 10 },
+      { tipoSanguineo: "O+", hemocomponente: "Concentrado de Hemácias", quantidade: 8 },
+    ],
+  },
+  {
+    id: 10, tipo: "REGULAR", status: "ENTREGUE", hospital: "Hospital Central", solicitadoPor: "Carlos Nogueira",
+    criadoEm: "2026-11-17T14:05", entregaPrevista: "2026-11-19T10:00",
+    itens: [{ tipoSanguineo: "B+", hemocomponente: "Plaquetas", quantidade: 12 }],
+  },
+  {
+    id: 9, tipo: "REGULAR", status: "ENTREGUE", hospital: "Hospital Central", solicitadoPor: "Carlos Nogueira",
+    criadoEm: "2026-11-12T08:30", entregaPrevista: "2026-11-14T10:00",
+    itens: [{ tipoSanguineo: "O+", hemocomponente: "Concentrado de Hemácias", quantidade: 15 }],
+  },
+  {
+    id: 8, tipo: "EMERGENCIAL", status: "ENTREGUE", hospital: "Hospital Central", solicitadoPor: "Rafaela Mota",
+    criadoEm: "2026-11-05T03:20", entregaPrevista: "2026-11-05T08:00",
+    justificativa: "Paciente em choque hemorrágico após acidente de trânsito.",
+    itens: [{ tipoSanguineo: "AB-", hemocomponente: "Plasma", quantidade: 4 }],
+  },
+  {
+    id: 7, tipo: "REGULAR", status: "CANCELADO", hospital: "Hospital Central", solicitadoPor: "Carlos Nogueira",
+    criadoEm: "2026-10-29T16:45",
+    itens: [{ tipoSanguineo: "A-", hemocomponente: "Plasma", quantidade: 5 }],
+  },
+  {
+    id: 231, tipo: "EMERGENCIAL", status: "EM_TRANSITO", hospital: "Hospital Central", solicitadoPor: "Rafaela Mota",
+    criadoEm: "2026-10-03T22:14", entregaPrevista: "2026-10-04T06:00",
+    justificativa:
+      "Paciente politraumatizado em centro cirúrgico com necessidade imediata de transfusão — reserva atual insuficiente para o procedimento.",
+    itens: [
+      { tipoSanguineo: "O-", hemocomponente: "Concentrado de Hemácias", quantidade: 6 },
+      { tipoSanguineo: "O-", hemocomponente: "Plasma", quantidade: 3 },
+      { tipoSanguineo: "AB+", hemocomponente: "Plaquetas", quantidade: 2 },
+      { tipoSanguineo: "O+", hemocomponente: "Concentrado de Hemácias", quantidade: 6 },
+      { tipoSanguineo: "O+", hemocomponente: "Plasma", quantidade: 3 },
+      { tipoSanguineo: "AB+", hemocomponente: "Plaquetas", quantidade: 3 },
+    ],
+  },
 ];
