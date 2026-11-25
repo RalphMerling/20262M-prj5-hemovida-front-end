@@ -2,8 +2,8 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 
 // ======================================================
 // INÍCIO - MS2 ESTOQUE
@@ -191,10 +191,10 @@ const classeLabel =
 // - Retorno à Lista de Transações
 // ======================================================
 
-export default function DetalhesTransacaoPage() {
-  const params = useParams<{ id: string }>();
+function DetalhesTransacao() {
+  const id = useSearchParams().get("id") ?? "";
 
-  const transacao = buscarTransacao(params.id);
+  const transacao = buscarTransacao(id);
 
   // ESTADOS DA SIMULAÇÃO
   const [statusLocal, setStatusLocal] =
@@ -659,5 +659,15 @@ export default function DetalhesTransacaoPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+
+// O Suspense é obrigatório quando a página lê o "?id=" (useSearchParams).
+export default function DetalhesTransacaoPage() {
+  return (
+    <Suspense fallback={null}>
+      <DetalhesTransacao />
+    </Suspense>
   );
 }

@@ -18,7 +18,7 @@ export function TabelaPedidos({ pedidos, comDetalhes = false }: { pedidos: Pedid
           render: (p) => (
             <>
               <Link
-                href={`/admin/demanda/historico/${p.id}`}
+                href={`/admin/demanda/historico/detalhe?id=${p.id}`}
                 className="font-semibold text-azul-1 hover:underline"
               >
                 {codigoPedido(p)}
@@ -45,7 +45,7 @@ export function TabelaPedidos({ pedidos, comDetalhes = false }: { pedidos: Pedid
       titulo: "Ações",
       largura: "17%",
       render: (p) => (
-        <ButtonLink href={`/admin/demanda/historico/${p.id}`} variante="secundario" tamanho="sm">
+        <ButtonLink href={`/admin/demanda/historico/detalhe?id=${p.id}`} variante="secundario" tamanho="sm">
           Ver detalhes
         </ButtonLink>
       ),

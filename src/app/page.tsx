@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Check, ChevronDown, ClipboardCheck, Droplet, Stethoscope, UserPlus } from "lucide-react";
 import { Logo } from "@/components/layout/Logo";
+import { imagem } from "@/lib/imagem";
 
 // ---------- Textos da página  ----------
 
@@ -136,7 +137,7 @@ export default function HomePage() {
             <div className="animar-flutuar relative">
               <div className="transition-transform duration-500 hover:-rotate-3 hover:scale-105">
                 <Image
-                  src="/img/tubo-sangue.png"
+                  src={imagem("/img/tubo-sangue.png")}
                   alt=""
                   width={945}
                   height={1177}

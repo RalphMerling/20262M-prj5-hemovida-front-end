@@ -1,10 +1,14 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { DoacaoFluxo } from "@/components/doacao/DoacaoFluxo";
 import { ButtonLink } from "@/components/ui/Button";
 import { filaTriagemMock } from "@/data/mock";
 
 // O endereço chega assim: /admin/doacao?id=1  (o id é de quem acabou de passar na triagem).
-export default async function DoacaoPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
-  const { id } = await searchParams;
+function Doacao() {
+  const id = useSearchParams().get("id");
   const paciente = filaTriagemMock.find((p) => String(p.id) === id);
 
   // Sem id (ou id que não existe), por exemplo ao clicar em "Doação" no menu.
@@ -22,4 +26,13 @@ export default async function DoacaoPage({ searchParams }: { searchParams: Promi
 
   // O key faz o formulário recomeçar do zero quando muda o paciente.
   return <DoacaoFluxo key={paciente.id} paciente={paciente} />;
+}
+
+// O Suspense é obrigatório quando a página lê o "?id=" (useSearchParams).
+export default function DoacaoPage() {
+  return (
+    <Suspense fallback={null}>
+      <Doacao />
+    </Suspense>
+  );
 }

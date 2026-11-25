@@ -2,8 +2,8 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 
 // ======================================================
 // INÍCIO - MS2 ESTOQUE
@@ -253,10 +253,10 @@ const classeBotaoVoltar =
 // - Voltar sempre no canto inferior direito
 // ======================================================
 
-export default function DetalhesSolicitacaoPage() {
-  const params = useParams<{ id: string }>();
+function DetalhesSolicitacao() {
+  const id = useSearchParams().get("id") ?? "";
 
-  const solicitacao = buscarSolicitacao(params.id);
+  const solicitacao = buscarSolicitacao(id);
 
   // ESTADOS DA SIMULAÇÃO
   const [statusEditado, setStatusEditado] =
@@ -812,5 +812,15 @@ export default function DetalhesSolicitacaoPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+
+// O Suspense é obrigatório quando a página lê o "?id=" (useSearchParams).
+export default function DetalhesSolicitacaoPage() {
+  return (
+    <Suspense fallback={null}>
+      <DetalhesSolicitacao />
+    </Suspense>
   );
 }

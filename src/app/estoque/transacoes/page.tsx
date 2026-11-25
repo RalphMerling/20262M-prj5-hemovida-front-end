@@ -639,7 +639,7 @@ export default function TransacoesPage() {
 
                   <td className="px-3">
                     <Link
-                      href={`/estoque/transacoes/${transacao.id}`}
+                      href={`/estoque/transacoes/detalhe?id=${transacao.id}`}
                       aria-label={`Detalhes da transação ${transacao.id}`}
                       title={`Consultar ${transacao.id}`}
                       className="inline-flex rounded p-2 text-azul-1 hover:bg-azul-3/30"

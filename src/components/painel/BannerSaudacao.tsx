@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Saudacao } from "@/components/ui/Saudacao";
+import { imagem } from "@/lib/imagem";
 
 // Bento azul escuro: saudação + resumo + ilustração.
 export function BannerSaudacao({ nome }: { nome: string }) {
@@ -12,7 +13,7 @@ export function BannerSaudacao({ nome }: { nome: string }) {
 
       {/* Some em telas pequenas. */}
       <Image
-        src="/img/enfermeiro.png"
+        src={imagem("/img/enfermeiro.png")}
         alt=""
         width={180}
         height={236}

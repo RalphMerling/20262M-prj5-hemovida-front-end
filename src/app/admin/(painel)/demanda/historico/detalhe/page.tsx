@@ -1,5 +1,8 @@
+"use client";
+
 import { ArrowLeft } from "lucide-react";
-import { notFound } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { ItensDoPedido } from "@/components/demanda/ItensDoPedido";
 import { LinhaDoTempoPedido } from "@/components/demanda/LinhaDoTempoPedido";
 import { codigoPedido, formatarDataHora, statusInfo, tipoInfo } from "@/components/demanda/pedidoHelpers";
@@ -18,14 +21,27 @@ function Dado({ rotulo, valor }: { rotulo: string; valor: string }) {
   );
 }
 
-// Detalhes de UM pedido. O [id] da pasta vira o número que vem no endereço:
-// /admin/demanda/historico/231  ->  id = "231"
-export default async function DetalhePedido({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+// Detalhes de UM pedido. O número vem no endereço, depois do "?id=":
+// /admin/demanda/historico/detalhe?id=231  ->  id = "231"
+function DetalhesDoPedido() {
+  const id = useSearchParams().get("id") ?? "";
 
-  // TODO: com a API: pedidosService.buscarPorId(id). Se vier 404, chame notFound() também.
+  // TODO: com a API: pedidosService.buscarPorId(id). Se vier 404, mostre a mesma mensagem de "não encontrado".
   const pedido = pedidosMock.find((p) => p.id === Number(id));
-  if (!pedido) notFound();
+
+  if (!pedido) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div>
+          <ButtonLink href="/admin/demanda/historico" variante="voltar" tamanho="sm">
+            <ArrowLeft size={14} className="mr-1" aria-hidden="true" />
+            Voltar
+          </ButtonLink>
+        </div>
+        <Alert tipo="erro">Pedido não encontrado.</Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -51,7 +67,7 @@ export default async function DetalhePedido({ params }: { params: Promise<{ id: 
         )}
 
         <dl className="grid grid-cols-2 gap-6 md:grid-cols-4">
-          <Dado rotulo="Entrega Prevista" valor={pedido.entregaPrevista ? formatarDataHora(pedido.entregaPrevista) : "—"} />
+          <Dado rotulo="Entrega Prevista" valor={pedido.entregaPrevista ? formatarDataHora(pedido.entregaPrevista) : "\u2014"} />
           <Dado rotulo="Código do pedido" valor={codigoPedido(pedido)} />
           <Dado rotulo="Criado em" valor={formatarDataHora(pedido.criadoEm)} />
           <Dado rotulo="Solicitado por" valor={pedido.solicitadoPor} />
@@ -67,5 +83,14 @@ export default async function DetalhePedido({ params }: { params: Promise<{ id: 
         <ItensDoPedido itens={pedido.itens} />
       </Card>
     </div>
+  );
+}
+
+// O Suspense é obrigatório quando a página lê o "?id=" (useSearchParams).
+export default function DetalhePedido() {
+  return (
+    <Suspense fallback={null}>
+      <DetalhesDoPedido />
+    </Suspense>
   );
 }

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useSyncExternalStore } from "react";
 import { Card } from "@/components/ui/Card";
 import type { Genero } from "@/models/doador";
+import { imagem } from "@/lib/imagem";
 
 const MESES = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
 
@@ -61,7 +62,7 @@ export function BannerObrigado({ nome, genero }: BannerObrigadoProps) {
       </div>
 
     <div aria-hidden className="pointer-events-none absolute bottom-0 right-6 hidden h-[78%] w-44 sm:block">
-        <Image src="/img/mao-bolsa-sangue.png" alt="" fill sizes="176px" className="object-contain object-bottom" />
+        <Image src={imagem("/img/mao-bolsa-sangue.png")} alt="" fill sizes="176px" className="object-contain object-bottom" />
     </div>
     </Card>
   );
