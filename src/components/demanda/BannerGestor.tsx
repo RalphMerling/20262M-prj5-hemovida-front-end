@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useSyncExternalStore } from "react";
 import { ButtonLink } from "@/components/ui/Button";
+import { imagem } from "@/lib/imagem";
 
 // Não tem nada para "assinar": a data não muda sozinha na tela.
 const assinar = () => () => {};
@@ -20,7 +21,7 @@ export function BannerGestor({ hospital }: { hospital: string }) {
     <section className="relative flex min-h-56 items-center overflow-hidden rounded-xl bg-azul-1 px-8 py-6 text-branco">
       {/* A imagem tem o mesmo azul do fundo, então se mistura com ele. Só aparece em telas grandes, para não ficar por cima do texto. */}
       <Image
-        src="/img/banner-gestor.png"
+        src={imagem("/img/banner-gestor.png")}
         alt=""
         fill
         sizes="(min-width: 1280px) 70vw, 0px"

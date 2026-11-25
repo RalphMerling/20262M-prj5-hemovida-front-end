@@ -532,7 +532,7 @@ export default function ConsultaEstoquePage() {
                   {/* DETALHES */}
                   <td className="px-3">
                     <Link
-                      href={`/estoque/consulta/${bolsa.id}`}
+                      href={`/estoque/consulta/detalhe?id=${bolsa.id}`}
                       aria-label={`Detalhes da bolsa ${bolsa.id}`}
                       title={`Consultar ${bolsa.id}`}
                       className="inline-flex rounded p-2 text-azul-1 hover:bg-azul-3/30"

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Card } from "@/components/ui/Card";
+import { imagem } from "@/lib/imagem";
 
 // Banner do doador novo, que ainda não fez nenhuma doação.
 export function BannerBoasVindas({ nome }: { nome: string }) {
@@ -16,7 +17,7 @@ export function BannerBoasVindas({ nome }: { nome: string }) {
       </div>
 
       <div aria-hidden className="absolute bottom-0 right-6 hidden h-[78%] w-44 sm:block">
-        <Image src="/img/mao-bolsa-sangue.png" alt="" fill sizes="176px" className="object-contain object-bottom" />
+        <Image src={imagem("/img/mao-bolsa-sangue.png")} alt="" fill sizes="176px" className="object-contain object-bottom" />
       </div>
     </Card>
   );

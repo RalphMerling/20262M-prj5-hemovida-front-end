@@ -1,10 +1,14 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { TriagemFluxo } from "@/components/triagem/TriagemFluxo";
 import { ButtonLink } from "@/components/ui/Button";
 import { filaTriagemMock } from "@/data/mock";
 
 // O endereço chega assim: /admin/triagem?id=1  (o id é de quem está na fila).
-export default async function TriagemPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
-  const { id } = await searchParams;
+function Triagem() {
+  const id = useSearchParams().get("id");
   const paciente = filaTriagemMock.find((p) => String(p.id) === id);
 
   // Sem id (ou id que não existe), por exemplo ao clicar em "Triagem" no menu.
@@ -20,4 +24,13 @@ export default async function TriagemPage({ searchParams }: { searchParams: Prom
 
   // O key faz o formulário recomeçar do zero quando muda o paciente.
   return <TriagemFluxo key={paciente.id} paciente={paciente} />;
+}
+
+// O Suspense é obrigatório quando a página lê o "?id=" (useSearchParams).
+export default function TriagemPage() {
+  return (
+    <Suspense fallback={null}>
+      <Triagem />
+    </Suspense>
+  );
 }

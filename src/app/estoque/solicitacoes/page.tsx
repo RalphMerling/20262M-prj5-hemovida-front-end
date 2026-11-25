@@ -390,7 +390,7 @@ export default function SolicitacoesPage() {
                     {/* DETALHES */}
                     <td className="px-4">
                       <Link
-                        href={`/estoque/solicitacoes/${solicitacao.id}`}
+                        href={`/estoque/solicitacoes/detalhe?id=${solicitacao.id}`}
                         aria-label={`Detalhes da solicitação ${solicitacao.id}`}
                         title={`Consultar ${solicitacao.id}`}
                         className="inline-flex rounded p-2 text-azul-1 hover:bg-azul-3/30"

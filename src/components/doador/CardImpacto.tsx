@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { intervaloEmDias } from "@/lib/regras";
 import type { Doador } from "@/models/doador";
+import { imagem } from "@/lib/imagem";
 
 interface CardImpactoProps {
   genero: Doador["doador_genero"];
@@ -24,7 +25,7 @@ export function CardImpacto({ genero, ultimaDoacao }: CardImpactoProps) {
 
       <div className="relative w-full flex-1">
         <Image
-          src="/img/enfermeira-doadora.png"
+          src={imagem("/img/enfermeira-doadora.png")}
           alt=""
           fill
           sizes="(min-width: 1024px) 240px, 100vw"

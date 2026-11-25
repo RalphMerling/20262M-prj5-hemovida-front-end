@@ -1,6 +1,8 @@
+"use client";
 
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 // ======================================================
 // INÍCIO - MS2 ESTOQUE
@@ -156,10 +158,6 @@ function CampoConsulta({
   );
 }
 
-// PROPRIEDADES DA ROTA DINÂMICA
-type PageProps = {
-  params: Promise<{ id: string }>;
-};
 
 // ======================================================
 // MS2 ESTOQUE
@@ -167,10 +165,8 @@ type PageProps = {
 // Mantidos os dados, o histórico e a navegação original
 // ======================================================
 
-export default async function DetalhesBolsaPage({
-  params,
-}: PageProps) {
-  const { id } = await params;
+function DetalhesBolsa() {
+  const id = useSearchParams().get("id") ?? "";
 
   const bolsa = buscarBolsa(id);
 
@@ -337,5 +333,15 @@ export default async function DetalhesBolsaPage({
         </div>
       </main>
     </div>
+  );
+}
+
+
+// O Suspense é obrigatório quando a página lê o "?id=" (useSearchParams).
+export default function DetalhesBolsaPage() {
+  return (
+    <Suspense fallback={null}>
+      <DetalhesBolsa />
+    </Suspense>
   );
 }
