@@ -31,7 +31,7 @@ export default function Demanda() {
   const { totalPeriodo, diasPeriodo, variacaoRegulares, variacaoEmergenciais } = indicadoresDemandaMock;
   const media = (totalPeriodo / diasPeriodo).toFixed(1).replace(".", ",");
 
-  const recentes = [...pedidosMock].sort((a, b) => b.dataPedido.localeCompare(a.dataPedido)).slice(0, 4);
+  const recentes = [...pedidosMock].sort((a, b) => b.criadoEm.localeCompare(a.criadoEm)).slice(0, 4);
 
   const fatiasRegulares = componentesRegularesMock.map((c, i) => ({ ...c, cor: coresDasFatias[i] }));
   const fatiasEmergenciais = componentesEmergenciaisMock.map((c, i) => ({ ...c, cor: coresDasFatias[i] }));
