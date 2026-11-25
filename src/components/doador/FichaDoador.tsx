@@ -13,6 +13,8 @@ interface FichaDoadorProps {
 
 // A "ficha" que a recepção confere
 export function FichaDoador({ doador, ultimaDoacao, acoes, className = "" }: FichaDoadorProps) {
+  const sangueInformado = doador.doador_tipo_sanguineo !== null && doador.doador_fator_rh !== null;
+
   const campos: { rotulo: string; valor: ReactNode }[] = [
     { rotulo: "Nome completo", valor: doador.doador_nome },
     {
@@ -21,7 +23,11 @@ export function FichaDoador({ doador, ultimaDoacao, acoes, className = "" }: Fic
     },
     {
       rotulo: "Tipo sanguíneo",
-      valor: <Badge variante="sangue">{`${doador.doador_tipo_sanguineo}${doador.doador_fator_rh}`}</Badge>,
+      valor: sangueInformado ? (
+        <Badge variante="sangue">{`${doador.doador_tipo_sanguineo}${doador.doador_fator_rh}`}</Badge>
+      ) : (
+        "Não informado"
+      ),
     },
     { rotulo: "CPF", valor: formatarCpf(doador.doador_cpf) },
     { rotulo: "Última doação", valor: ultimaDoacao ? formatarDataBR(ultimaDoacao) : "Nenhuma" },

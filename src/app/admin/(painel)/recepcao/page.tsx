@@ -7,7 +7,6 @@ import { EditarDoadorModal } from "@/components/doador/EditarDoadorModal";
 import type { DadosEditaveis } from "@/components/doador/EditarDoadorModal";
 import { FichaDoador } from "@/components/doador/FichaDoador";
 import { FormularioCadastro } from "@/components/doador/FormularioCadastro";
-import type { DadosCadastro } from "@/components/doador/FormularioCadastro";
 import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -18,6 +17,7 @@ import { Modal } from "@/components/ui/Modal";
 import type { DoadorComHistorico, ItemHistorico } from "@/data/mock";
 import { formatarDataBR } from "@/lib/formatadores";
 import { diasParaProximaDoacao, intervaloEmDias } from "@/lib/regras";
+import type { Doador } from "@/models/doador";
 import { mensagemDoErro } from "@/services/api";
 import { buscarHistoricoDoDoador } from "@/services/doacoesService";
 import { atualizarDoador, buscarDoadorPorCpf } from "@/services/doadoresService";
@@ -97,12 +97,15 @@ export default function Recepcao() {
     }
   }
 
-  function cadastrarDoador(dados: DadosCadastro) {
-    // TODO: com a API, chamar cadastrarDoador() do doadoresService. Falta definir de onde vem o usuario_id
-    // quando é a recepção que cadastra, e depois abrir a ficha do doador aqui.
+  // Chamado pelo formulário depois que a API cadastrou o doador: fecha a janela e já abre a ficha dele.
+  function doadorCadastrado(doador: Doador) {
     setCadastrando(false);
     setErroBusca("");
-    setMensagem({ tipo: "sucesso", texto: `Doador ${dados.nome} cadastrado com sucesso.` });
+    setCpf(doador.doador_cpf);
+    setEncontrado({ doador, historico: [] }); // doador novo ainda não tem doações
+    setDiasDeEspera(0);
+    setDoacaoAberta(false);
+    setMensagem({ tipo: "sucesso", texto: `Doador ${doador.doador_nome} cadastrado com sucesso.` });
   }
 
   const podeDoar = encontrado !== null && encontrado.doador.doador_status === 1 && diasDeEspera === 0;
@@ -232,12 +235,12 @@ export default function Recepcao() {
       )}
 
       {encontrado && editando && (
-        <EditarDoadorModal doador={encontrado.doador} aoSalvar={salvarEdicao} aoFechar={() => setEditando(false)} />
+        <EditarDoadorModal podeEditarSangue doador={encontrado.doador} aoSalvar={salvarEdicao} aoFechar={() => setEditando(false)} />
       )}
 
       <Modal aberto={cadastrando} aoFechar={() => setCadastrando(false)} titulo="Cadastrar novo doador" grande>
         {/* Só monta o formulário com a janela aberta, assim ele sempre começa vazio */}
-        {cadastrando && <FormularioCadastro modo="recepcao" aoCadastrar={cadastrarDoador} />}
+        {cadastrando && <FormularioCadastro modo="recepcao" aoCadastrar={doadorCadastrado} />}
       </Modal>
     </div>
   );

@@ -1,9 +1,9 @@
-// Ajudante que todos os services usam para falar com a API.
+// Ajudante que todos os services usam para falar com a API (sempre pelo gateway).
 
 // true = dados de mentira. Só vira false quando a variável está escrita exatamente como "false".
 export const USAR_MOCK = process.env.NEXT_PUBLIC_USAR_MOCK !== "false";
 
-const URL_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:7502";
+const URL_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:7501";
 
 // Um erro vindo da API, com o código HTTP (400, 401, 403, 404, 409...) e uma mensagem pronta para mostrar.
 export class ErroDeApi extends Error {
@@ -28,6 +28,11 @@ function mensagemPorStatus(status: number, detalhe: string): string {
       return detalhe || "Não encontrado.";
     case 409:
       return "Já existe um cadastro com esse CPF.";
+    case 429:
+      return "Muitas tentativas em pouco tempo. Aguarde um minutinho e tente de novo.";
+    case 502:
+    case 503:
+      return "Serviço indisponível no momento. Tente novamente em instantes.";
     default:
       return "Algo deu errado no servidor. Tente de novo em instantes.";
   }
@@ -50,13 +55,15 @@ function pegarToken(): string | null {
 }
 
 interface OpcoesDaRequisicao {
-  metodo?: "GET" | "POST" | "PUT" | "DELETE";
+  metodo?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   corpo?: unknown;
+  // true = rota pública (como o cadastro e o login): não manda o token.
+  semToken?: boolean;
 }
 
 // Faz uma chamada para a API e devolve o JSON. Em caso de erro, lança um ErroDeApi.
 export async function requisicao<T>(caminho: string, opcoes: OpcoesDaRequisicao = {}): Promise<T> {
-  const token = pegarToken();
+  const token = opcoes.semToken ? null : pegarToken();
 
   let resposta: Response;
   try {
@@ -77,9 +84,10 @@ export async function requisicao<T>(caminho: string, opcoes: OpcoesDaRequisicao 
   if (!resposta.ok) {
     let detalhe = "";
     try {
-      // O NestJS devolve { message: "texto" } ou { message: ["texto 1", "texto 2"] }
-      const json: { message?: string | string[] } = await resposta.json();
-      detalhe = Array.isArray(json.message) ? json.message.join(" ") : (json.message ?? "");
+      // Os serviços (NestJS) devolvem { message: "texto" } ou { message: ["texto 1", "texto 2"] }.
+      // O gateway devolve { erro: "texto" }.
+      const json: { message?: string | string[]; erro?: string } = await resposta.json();
+      detalhe = Array.isArray(json.message) ? json.message.join(" ") : (json.message ?? json.erro ?? "");
     } catch {
       // Se a resposta não for JSON, usamos só a mensagem padrão.
     }

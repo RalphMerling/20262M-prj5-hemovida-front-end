@@ -10,8 +10,8 @@ export interface Doador {
   doador_cpf: string; // 11 números, sem pontuação
   doador_data_nascimento: string; // AAAA-MM-DD
   doador_genero: Genero;
-  doador_tipo_sanguineo: TipoSanguineo;
-  doador_fator_rh: FatorRh;
+  doador_tipo_sanguineo: TipoSanguineo | null; // null = ainda não informado (a recepção preenche depois)
+  doador_fator_rh: FatorRh | null; // null = ainda não informado
   doador_telefone: string;
   doador_email: string;
   doador_cep: string;
