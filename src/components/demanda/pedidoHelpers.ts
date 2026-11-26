@@ -58,3 +58,48 @@ export function resumoDoPedido(pedido: Pedido): string {
   const total = pedido.totalItens ?? 0;
   return `${total} ${total === 1 ? "item" : "itens"}`;
 }
+
+const UM_DIA = 24 * 60 * 60 * 1000;
+
+// "2026-11-26T01:47" -> milissegundos (as duas pontas usam o mesmo "relógio", então a conta fecha).
+function emMilissegundos(dataHora: string): number {
+  return Date.parse(`${dataHora.slice(0, 16)}:00Z`);
+}
+
+export interface IndicadoresDemanda {
+  total: number; // pedidos no período
+  dias: number;
+  media: number; // pedidos por dia
+  // % em relação ao período anterior do mesmo tamanho. null = não dá para comparar (antes era 0).
+  variacaoRegulares: number | null;
+  variacaoEmergenciais: number | null;
+}
+
+// Calcula os cartões da tela inicial a partir da lista de pedidos.
+// agora: data e hora atuais no mesmo formato dos pedidos (AAAA-MM-DDTHH:mm).
+export function calcularIndicadores(pedidos: Pedido[], agora: string, dias = 30): IndicadoresDemanda {
+  const fim = emMilissegundos(agora);
+  const inicio = fim - dias * UM_DIA;
+  const inicioAnterior = inicio - dias * UM_DIA;
+
+  const contar = (de: number, ate: number, tipo?: Pedido["tipo"]) =>
+    pedidos.filter((p) => {
+      const quando = emMilissegundos(p.criadoEm);
+      return quando > de && quando <= ate && (!tipo || p.tipo === tipo);
+    }).length;
+
+  const variacao = (tipo: Pedido["tipo"]) => {
+    const atual = contar(inicio, fim, tipo);
+    const anterior = contar(inicioAnterior, inicio, tipo);
+    return anterior === 0 ? null : ((atual - anterior) / anterior) * 100;
+  };
+
+  const total = contar(inicio, fim);
+  return {
+    total,
+    dias,
+    media: total / dias,
+    variacaoRegulares: variacao("REGULAR"),
+    variacaoEmergenciais: variacao("EMERGENCIAL"),
+  };
+}

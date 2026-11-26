@@ -12,11 +12,14 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { TipoPedido } from "@/models/pedido";
+import { mensagemDoErro } from "@/services/api";
+import { criarPedido } from "@/services/pedidosService";
 
 const tiposSanguineos = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 const hemocomponentes = ["Concentrado de Hemácias", "Plaquetas", "Plasma", "Crioprecipitado"];
 const quantidades = Array.from({ length: 20 }, (_, i) => String(i + 1));
 const LIMITE_JUSTIFICATIVA = 500;
+const LIMITE_ITENS = 20; // máximo que a API aceita por pedido
 
 type Campo = "tipoSanguineo" | "hemocomponente" | "quantidade";
 
@@ -48,6 +51,8 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
   const [erroJustificativa, setErroJustificativa] = useState("");
   const [erros, setErros] = useState<Erros>({});
   const [sucesso, setSucesso] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [erroEnvio, setErroEnvio] = useState("");
   const [confirmandoCancelar, setConfirmandoCancelar] = useState(false);
 
   const emergencial = tipo === "EMERGENCIAL";
@@ -79,7 +84,7 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
     else router.push("/admin/demanda");
   }
 
-  function confirmar(evento: FormEvent<HTMLFormElement>) {
+  async function confirmar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
     const novosErros: Erros = {};
@@ -99,10 +104,28 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
       return;
     }
 
-    // TODO: com a API: pedidosService.criar({ tipo, itens, justificativa }). Erros possíveis: 400 validação, 403 perfil.
-    setSucesso(true);
-    setItens([{ chave: proximaChave.current++, tipoSanguineo: "", hemocomponente: "", quantidade: "1" }]);
-    setJustificativa("");
+    setErroEnvio("");
+    setEnviando(true);
+    try {
+      await criarPedido({
+        tipo,
+        justificativa,
+        itens: itens.map((i) => ({
+          tipoSanguineo: i.tipoSanguineo,
+          hemocomponente: i.hemocomponente,
+          quantidade: Number(i.quantidade),
+        })),
+      });
+      setSucesso(true);
+      setItens([{ chave: proximaChave.current++, tipoSanguineo: "", hemocomponente: "", quantidade: "1" }]);
+      setJustificativa("");
+    } catch (e) {
+      // 400 (dado inválido), 403 (sem permissão)... A mensagem já vem pronta do service.
+      // O que a pessoa digitou fica na tela para ela corrigir.
+      setErroEnvio(mensagemDoErro(e));
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -122,6 +145,7 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
         </div>
 
         {sucesso && <Alert tipo="sucesso">{textos[tipo]}</Alert>}
+        {erroEnvio && <Alert tipo="erro">{erroEnvio}</Alert>}
 
         <div className="divide-y divide-preto/15">
           {itens.map((item, indice) => (
@@ -169,7 +193,8 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
         <button
           type="button"
           onClick={adicionar}
-          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-preto/30 py-2 text-sm font-semibold text-azul-1 transition hover:bg-azul-3/20"
+          disabled={itens.length >= LIMITE_ITENS}
+          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-preto/30 py-2 text-sm font-semibold text-azul-1 transition hover:bg-azul-3/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Plus size={16} aria-hidden="true" />
           Adicionar item
@@ -194,8 +219,8 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
           <Button type="button" variante="cancelar" tamanho="sm" onClick={cancelar}>
             Cancelar
           </Button>
-          <Button type="submit" variante="secundario" tamanho="sm">
-            Confirmar Pedido
+          <Button type="submit" variante="secundario" tamanho="sm" disabled={enviando}>
+            {enviando ? "Enviando..." : "Confirmar Pedido"}
           </Button>
         </div>
       </form>
