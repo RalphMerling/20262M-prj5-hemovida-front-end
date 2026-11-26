@@ -11,6 +11,15 @@ export const statusInfo: Record<StatusPedido, { texto: string; variante: Variant
   EM_TRANSITO: { texto: "Em trânsito", variante: "info" },
   ENTREGUE: { texto: "Entregue", variante: "sucesso" },
   CANCELADO: { texto: "Cancelado", variante: "erro" },
+  RECUSADO: { texto: "Recusado", variante: "erro" },
+  FALHA_ENVIO: { texto: "Falha no envio", variante: "erro" },
+};
+
+// Status que saem do caminho normal: a linha do tempo dá lugar a um aviso.
+export const avisoDeStatus: Partial<Record<StatusPedido, string>> = {
+  CANCELADO: "Este pedido foi cancelado.",
+  RECUSADO: "Este pedido foi recusado: não havia estoque suficiente.",
+  FALHA_ENVIO: "Houve uma falha no envio deste pedido.",
 };
 
 export const tipoInfo: Record<TipoPedido, { texto: string; variante: VarianteBadge }> = {
@@ -27,8 +36,9 @@ export const etapas: { status: StatusPedido; rotulo: string }[] = [
   { status: "ENTREGUE", rotulo: "Entregue" },
 ];
 
-// Pedido 231, criado em 2026, vira "PED-2026-00231"
+// Usa o código que a API gerou. No mock não existe: pedido 231, criado em 2026, vira "PED-2026-00231"
 export function codigoPedido(pedido: Pedido): string {
+  if (pedido.codigo) return pedido.codigo;
   return `PED-${pedido.criadoEm.slice(0, 4)}-${String(pedido.id).padStart(5, "0")}`;
 }
 
@@ -40,4 +50,11 @@ export function formatarDataHora(dataHora: string): string {
 
 export function totalDeBolsas(pedido: Pedido): number {
   return pedido.itens.reduce((soma, item) => soma + item.quantidade, 0);
+}
+
+// Texto pequeno embaixo do código. A lista da API não traz as bolsas, só o número de itens.
+export function resumoDoPedido(pedido: Pedido): string {
+  if (pedido.itens.length > 0) return `${totalDeBolsas(pedido)} bolsas`;
+  const total = pedido.totalItens ?? 0;
+  return `${total} ${total === 1 ? "item" : "itens"}`;
 }

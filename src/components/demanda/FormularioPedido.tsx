@@ -14,7 +14,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { TipoPedido } from "@/models/pedido";
 
 const tiposSanguineos = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-const hemocomponentes = ["Concentrado de Hemácias", "Plaquetas", "Plasma", "Outros"];
+const hemocomponentes = ["Concentrado de Hemácias", "Plaquetas", "Plasma", "Crioprecipitado"];
 const quantidades = Array.from({ length: 20 }, (_, i) => String(i + 1));
 const LIMITE_JUSTIFICATIVA = 500;
 

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { ItensDoPedido } from "@/components/demanda/ItensDoPedido";
 import { LinhaDoTempoPedido } from "@/components/demanda/LinhaDoTempoPedido";
-import { codigoPedido, formatarDataHora, statusInfo, tipoInfo } from "@/components/demanda/pedidoHelpers";
+import { avisoDeStatus, codigoPedido, formatarDataHora, statusInfo, tipoInfo } from "@/components/demanda/pedidoHelpers";
 import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
@@ -60,8 +60,8 @@ function DetalhesDoPedido() {
           <Badge variante={tipoInfo[pedido.tipo].variante}>{tipoInfo[pedido.tipo].texto}</Badge>
         </div>
 
-        {pedido.status === "CANCELADO" ? (
-          <Alert tipo="erro">Este pedido foi cancelado.</Alert>
+        {avisoDeStatus[pedido.status] ? (
+          <Alert tipo="erro">{avisoDeStatus[pedido.status]}</Alert>
         ) : (
           <LinhaDoTempoPedido status={pedido.status} />
         )}
