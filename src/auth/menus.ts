@@ -26,12 +26,24 @@ const recepcao: ItemMenu = { rotulo: "Recepção", href: "/admin/recepcao", icon
 const triagem: ItemMenu = { rotulo: "Triagem", href: "/admin/triagem", icone: "triagem" };
 const doacao: ItemMenu = { rotulo: "Doação", href: "/admin/doacao", icone: "doacao" };
 
+// ======================================================
+// MS3 DEMANDA
+// O "Início" da demanda é outro item: o "inicio" acima aponta para /admin.
+// Os ícones são os mesmos que já existem no Sidebar.
+// ======================================================
+
+const inicioDemanda: ItemMenu = { rotulo: "Início", href: "/admin/demanda", icone: "inicio" };
+const regularesDemanda: ItemMenu = { rotulo: "Solicitações Regulares", href: "/admin/demanda/regular", icone: "recepcao" };
+const emergencialDemanda: ItemMenu = { rotulo: "Pedido Emergencial", href: "/admin/demanda/emergencial", icone: "triagem" };
+const historicoDemanda: ItemMenu = { rotulo: "Histórico", href: "/admin/demanda/historico", icone: "doacao" };
+
 // REGRA DA OMISSÃO: o perfil nunca vê um botão que não pode usar.
 // O "Sair" é fixo no Sidebar, por isso não aparece aqui.
 export const MENU_POR_PERFIL: Partial<Record<Perfil, ItemMenu[]>> = {
   ADMIN: [inicio, recepcao, triagem, doacao],
   RECEPCAO: [inicio, recepcao],
   ENFERMAGEM: [inicio, triagem, doacao],
+  GESTOR_DEMANDA: [inicioDemanda, regularesDemanda, emergencialDemanda, historicoDemanda],
 };
 
 // ======================================================

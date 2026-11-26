@@ -64,7 +64,10 @@ export function Sidebar({ itens, usuario }: SidebarProps) {
             // Regra para identificar a página ativa:
             //
             // Início:
-            //   Destaca somente a rota exata.
+            //   Destaca somente a rota exata
+            //   (inclui o Início da Demanda: /admin/demanda,
+            //   senão ele ficaria marcado em regular,
+            //   emergencial e histórico).
             //
             // Estoque:
             //   Destaca Dashboard e Consulta de Bolsas.
@@ -81,7 +84,7 @@ export function Sidebar({ itens, usuario }: SidebarProps) {
             // ==========================================
 
             const ativo =
-              href === "/" || href === "/admin"
+              href === "/" || href === "/admin" || href === "/admin/demanda"
                 ? rotaAtual === href
 
                 : href === "/estoque"
