@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { FiltrosPedido } from "@/components/demanda/FiltrosPedido";
 import { TabelaPedidos } from "@/components/demanda/TabelaPedidos";
+import { usePedidos } from "@/components/demanda/usePedidos";
+import { Alert } from "@/components/ui/Alert";
 import { Card } from "@/components/ui/Card";
-import { pedidosMock } from "@/data/mock";
 
 type Filtro = "todos" | "regulares" | "emergenciais" | "antigos";
 
@@ -20,8 +21,10 @@ const filtros: { id: Filtro; rotulo: string }[] = [
 export default function HistoricoPedidos() {
   const [filtro, setFiltro] = useState<Filtro>("todos");
 
-  // TODO: trocar o mock pela API: pedidosService.listar(). O filtro pode virar parâmetro da busca.
-  const porTipo = pedidosMock.filter((p) => {
+  // A API não filtra: a tela busca todos os pedidos e filtra/ordena aqui.
+  const { pedidos: todos, carregando, erro } = usePedidos();
+
+  const porTipo = todos.filter((p) => {
     if (filtro === "regulares") return p.tipo === "REGULAR";
     if (filtro === "emergenciais") return p.tipo === "EMERGENCIAL";
     return true;
@@ -37,10 +40,17 @@ export default function HistoricoPedidos() {
 
       <Card className="flex flex-col gap-4">
         <FiltrosPedido filtros={filtros} ativo={filtro} aoMudar={setFiltro} />
+        {erro && <Alert tipo="erro">{erro}</Alert>}
         {/* Com muitos pedidos, a lista rola dentro do cartão. */}
-        <div className="max-h-[60vh] overflow-y-auto">
-          <TabelaPedidos pedidos={pedidos} comDetalhes />
-        </div>
+        {carregando ? (
+          <p className="text-sm text-preto/70">Carregando pedidos...</p>
+        ) : (
+          !erro && (
+            <div className="max-h-[60vh] overflow-y-auto">
+              <TabelaPedidos pedidos={pedidos} comDetalhes />
+            </div>
+          )
+        )}
       </Card>
     </div>
   );

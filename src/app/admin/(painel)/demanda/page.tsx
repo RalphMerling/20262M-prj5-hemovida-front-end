@@ -1,18 +1,19 @@
+"use client";
+
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { BannerGestor } from "@/components/demanda/BannerGestor";
 import { CartaoIndicador } from "@/components/demanda/CartaoIndicador";
+import { calcularIndicadores } from "@/components/demanda/pedidoHelpers";
 import { TabelaPedidos } from "@/components/demanda/TabelaPedidos";
+import { usePedidos } from "@/components/demanda/usePedidos";
+import { Alert } from "@/components/ui/Alert";
 import { Card } from "@/components/ui/Card";
 import { Rosquinha } from "@/components/ui/Rosquinha";
-import {
-  componentesEmergenciaisMock,
-  componentesRegularesMock,
-  indicadoresDemandaMock,
-  pedidosMock,
-} from "@/data/mock";
+import { componentesEmergenciaisMock, componentesRegularesMock } from "@/data/mock";
+import { dataDaApiParaTela } from "@/services/pedidosService";
 
-// Mesma ordem dos nomes nos dados: hemácias, plaquetas, plasma, outros.
+// Mesma ordem dos nomes nos dados: hemácias, plaquetas, plasma, crioprecipitado.
 const coresDasFatias = [
   "var(--color-vermelho-2)",
   "var(--color-vermelho-1)",
@@ -20,18 +21,26 @@ const coresDasFatias = [
   "var(--color-azul-3)",
 ];
 
-// 3.17 vira "3,17%". O sinal fica por conta da setinha.
-function formatarPercentual(valor: number): string {
-  return `${Math.abs(valor).toFixed(2).replace(".", ",")}%`;
+// 3.17 vira "3,17%". O sinal fica por conta da setinha. Sem como comparar (null), mostra um traço.
+function formatarPercentual(valor: number | null): string {
+  return valor === null ? "\u2014" : `${Math.abs(valor).toFixed(2).replace(".", ",")}%`;
+}
+
+function tendenciaDe(valor: number | null): "alta" | "baixa" | undefined {
+  if (valor === null || valor === 0) return undefined;
+  return valor < 0 ? "baixa" : "alta";
 }
 
 // Tela inicial do gestor de demanda: /admin/demanda
 export default function Demanda() {
-  // TODO: trocar os mocks pelas chamadas à API.
-  const { totalPeriodo, diasPeriodo, variacaoRegulares, variacaoEmergenciais } = indicadoresDemandaMock;
-  const media = (totalPeriodo / diasPeriodo).toFixed(1).replace(".", ",");
+  const { pedidos, carregando, erro } = usePedidos();
 
-  const recentes = [...pedidosMock].sort((a, b) => b.criadoEm.localeCompare(a.criadoEm)).slice(0, 4);
+  // Os 4 cartões são calculados com os pedidos de verdade. As rosquinhas ainda são fixas:
+  // a lista da API não traz os itens, e somar tudo exigiria uma rota nova no MS3.
+  const agora = dataDaApiParaTela(new Date().toISOString());
+  const { total, dias, media, variacaoRegulares, variacaoEmergenciais } = calcularIndicadores(pedidos, agora);
+
+  const recentes = [...pedidos].sort((a, b) => b.criadoEm.localeCompare(a.criadoEm)).slice(0, 4);
 
   const fatiasRegulares = componentesRegularesMock.map((c, i) => ({ ...c, cor: coresDasFatias[i] }));
   const fatiasEmergenciais = componentesEmergenciaisMock.map((c, i) => ({ ...c, cor: coresDasFatias[i] }));
@@ -42,18 +51,24 @@ export default function Demanda() {
         <BannerGestor hospital="Hospital Central" />
       </div>
 
-      <CartaoIndicador rotulo={`Solicitações nos últimos ${diasPeriodo} dias`} valor={String(totalPeriodo)} />
+      {erro && (
+        <div className="md:col-span-2 xl:col-span-4">
+          <Alert tipo="erro">{erro}</Alert>
+        </div>
+      )}
+
+      <CartaoIndicador rotulo={`Solicitações nos últimos ${dias} dias`} valor={String(total)} />
       <CartaoIndicador
         rotulo="Solicitações Regulares"
         valor={formatarPercentual(variacaoRegulares)}
-        tendencia={variacaoRegulares < 0 ? "baixa" : "alta"}
+        tendencia={tendenciaDe(variacaoRegulares)}
       />
       <CartaoIndicador
         rotulo="Solicitações Emergenciais"
         valor={formatarPercentual(variacaoEmergenciais)}
-        tendencia={variacaoEmergenciais < 0 ? "baixa" : "alta"}
+        tendencia={tendenciaDe(variacaoEmergenciais)}
       />
-      <CartaoIndicador rotulo="Média de solicitações por dia" valor={media} />
+      <CartaoIndicador rotulo="Média de solicitações por dia" valor={media.toFixed(1).replace(".", ",")} />
 
       <Card titulo="Tendência de Solicitações Regulares dos últimos 90 dias" className="xl:col-span-2">
         <Rosquinha fatias={fatiasRegulares} />
@@ -73,7 +88,7 @@ export default function Demanda() {
             <ArrowRight size={16} aria-hidden="true" />
           </Link>
         </div>
-        <TabelaPedidos pedidos={recentes} />
+        {carregando ? <p className="text-sm text-preto/70">Carregando pedidos...</p> : <TabelaPedidos pedidos={recentes} />}
       </Card>
     </div>
   );

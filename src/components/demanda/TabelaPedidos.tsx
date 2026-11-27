@@ -5,7 +5,7 @@ import { Table } from "@/components/ui/Table";
 import type { Coluna } from "@/components/ui/Table";
 import { formatarDataBR } from "@/lib/formatadores";
 import type { Pedido } from "@/models/pedido";
-import { codigoPedido, statusInfo, tipoInfo, totalDeBolsas } from "./pedidoHelpers";
+import { codigoPedido, resumoDoPedido, statusInfo, tipoInfo } from "./pedidoHelpers";
 
 // Tabela de pedidos. Clicar no código abre os detalhes: /admin/demanda/historico/[id].
 // Serve para o resumo da tela inicial e também para a tela de histórico completa.
@@ -23,7 +23,7 @@ export function TabelaPedidos({ pedidos, comDetalhes = false }: { pedidos: Pedid
               >
                 {codigoPedido(p)}
               </Link>
-              <p className="text-xs text-preto/70">{totalDeBolsas(p)} bolsas</p>
+              <p className="text-xs text-preto/70">{resumoDoPedido(p)}</p>
             </>
           ),
         },

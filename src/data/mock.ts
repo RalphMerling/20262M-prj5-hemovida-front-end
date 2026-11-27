@@ -183,14 +183,14 @@ export const componentesRegularesMock = [
   { nome: "Concentrado de Hemácias", valor: 60 },
   { nome: "Plaquetas", valor: 15 },
   { nome: "Plasma", valor: 15 },
-  { nome: "Outros", valor: 10 },
+  { nome: "Crioprecipitado", valor: 10 },
 ];
 
 export const componentesEmergenciaisMock = [
   { nome: "Concentrado de Hemácias", valor: 80 },
   { nome: "Plaquetas", valor: 8 },
   { nome: "Plasma", valor: 9 },
-  { nome: "Outros", valor: 3 },
+  { nome: "Crioprecipitado", valor: 3 },
 ];
 
 export const pedidosMock: Pedido[] = [
