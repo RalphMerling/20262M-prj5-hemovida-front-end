@@ -6,13 +6,15 @@ import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { SelectField } from "@/components/form/SelectField";
 import { CampoJustificativa } from "@/components/demanda/CampoJustificativa";
+import { ModalConfirmarPedido } from "@/components/demanda/ModalConfirmarPedido";
+import { ResultadoPedido } from "@/components/demanda/ResultadoPedido";
 import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { TipoPedido } from "@/models/pedido";
-import { mensagemDoErro } from "@/services/api";
+import { ErroDeApi, mensagemDoErro } from "@/services/api";
 import { criarPedido } from "@/services/pedidosService";
 
 const tiposSanguineos = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -34,11 +36,6 @@ interface ItemFormulario {
 // Erros por linha: { 1: { tipoSanguineo: "Selecione o tipo sanguíneo." } }
 type Erros = Record<number, Partial<Record<Campo, string>>>;
 
-const textos: Record<TipoPedido, string> = {
-  REGULAR: "Pedido regular enviado com sucesso.",
-  EMERGENCIAL: "Pedido emergencial enviado com sucesso.",
-};
-
 // Formulário de pedido de sangue. Serve para o regular e, depois, para o emergencial.
 export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
   const router = useRouter();
@@ -50,7 +47,9 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
   const [justificativa, setJustificativa] = useState("");
   const [erroJustificativa, setErroJustificativa] = useState("");
   const [erros, setErros] = useState<Erros>({});
-  const [sucesso, setSucesso] = useState(false);
+  // Depois de enviar, uma tela de resultado ocupa o lugar do formulário.
+  const [resultado, setResultado] = useState<"sucesso" | "erro" | null>(null);
+  const [confirmandoEnvio, setConfirmandoEnvio] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [erroEnvio, setErroEnvio] = useState("");
   const [confirmandoCancelar, setConfirmandoCancelar] = useState(false);
@@ -61,13 +60,11 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
     itens.length > 1 || itens.some((i) => i.tipoSanguineo || i.hemocomponente || i.quantidade !== "1");
 
   function atualizar(chave: number, campo: Campo, valor: string) {
-    setSucesso(false);
     setItens((atuais) => atuais.map((i) => (i.chave === chave ? { ...i, [campo]: valor } : i)));
     setErros((atuais) => ({ ...atuais, [chave]: { ...atuais[chave], [campo]: undefined } }));
   }
 
   function adicionar() {
-    setSucesso(false);
     setItens((atuais) => [
       ...atuais,
       { chave: proximaChave.current++, tipoSanguineo: "", hemocomponente: "", quantidade: "1" },
@@ -100,10 +97,15 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
 
     setErros(novosErros);
     if (Object.keys(novosErros).length > 0 || faltaJustificativa) {
-      setSucesso(false);
       return;
     }
 
+    // Tudo certo: antes de enviar, pergunta "tem certeza?". O envio acontece em enviar().
+    setConfirmandoEnvio(true);
+  }
+
+  async function enviar() {
+    setConfirmandoEnvio(false);
     setErroEnvio("");
     setEnviando(true);
     try {
@@ -116,17 +118,22 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
           quantidade: Number(i.quantidade),
         })),
       });
-      setSucesso(true);
-      setItens([{ chave: proximaChave.current++, tipoSanguineo: "", hemocomponente: "", quantidade: "1" }]);
-      setJustificativa("");
+      setResultado("sucesso");
     } catch (e) {
-      // 400 (dado inválido), 403 (sem permissão)... A mensagem já vem pronta do service.
-      // O que a pessoa digitou fica na tela para ela corrigir.
-      setErroEnvio(mensagemDoErro(e));
+      if (e instanceof ErroDeApi && e.status === 400) {
+        // Dado recusado (ex.: justificativa inválida): a pessoa consegue corrigir,
+        // então o formulário continua na tela com a mensagem da API.
+        setErroEnvio(mensagemDoErro(e));
+      } else {
+        // Servidor fora do ar, sem permissão, sessão expirada...: não adianta tentar de novo agora.
+        setResultado("erro");
+      }
     } finally {
       setEnviando(false);
     }
   }
+
+  if (resultado) return <ResultadoPedido resultado={resultado} />;
 
   return (
     <Card>
@@ -144,7 +151,6 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
           </p>
         </div>
 
-        {sucesso && <Alert tipo="sucesso">{textos[tipo]}</Alert>}
         {erroEnvio && <Alert tipo="erro">{erroEnvio}</Alert>}
 
         <div className="divide-y divide-preto/15">
@@ -208,8 +214,7 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
             maxLength={LIMITE_JUSTIFICATIVA}
             erro={erroJustificativa}
             onChange={(e) => {
-              setSucesso(false);
-              setErroJustificativa("");
+                        setErroJustificativa("");
               setJustificativa(e.target.value);
             }}
           />
@@ -224,6 +229,12 @@ export function FormularioPedido({ tipo }: { tipo: TipoPedido }) {
           </Button>
         </div>
       </form>
+
+      <ModalConfirmarPedido
+        aberto={confirmandoEnvio}
+        aoConfirmar={enviar}
+        aoCancelar={() => setConfirmandoEnvio(false)}
+      />
 
       <ConfirmDialog
         aberto={confirmandoCancelar}
