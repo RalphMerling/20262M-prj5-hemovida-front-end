@@ -1,6 +1,7 @@
 import { pedidosMock } from "@/data/mock";
 import type { ItemPedido, Pedido, StatusPedido, TipoPedido } from "@/models/pedido";
 import { ErroDeApi, USAR_MOCK, esperar, requisicao } from "@/services/api";
+import { buscarNomes } from "@/services/usuariosService";
 
 // ---------- Como a API do MS3 (demanda) fala ----------
 // Os nomes abaixo foram conferidos no código do MS3 (prisma/schema.prisma e src/requests).
@@ -123,8 +124,9 @@ export function converterPedido(api: PedidoResumoDaApi | PedidoCompletoDaApi): P
     codigo: api.solicitacao_codigo_pedido,
     tipo: tipoDaApiParaTela[api.solicitacao_tipo_solicitacao],
     status: statusDaApiParaTela[api.solicitacao_status_atual],
-    // A API não manda o nome do hospital nem de quem pediu, só os ids. TODO: perguntar ao MS3/MS4.
+    // A API do MS3 só manda o id do gestor (é o id dele no MS4). O nome vem de comNomeDoGestor().
     solicitadoPor: `Gestor #${api.gestor_hospital_id}`,
+    solicitadoPorId: Number(api.gestor_hospital_id),
     criadoEm: dataDaApiParaTela(api.solicitacao_data_hora_criacao),
     entregaPrevista: api.solicitacao_data_hora_prevista_entrega
       ? dataDaApiParaTela(api.solicitacao_data_hora_prevista_entrega)
@@ -161,6 +163,19 @@ export function montarCorpo(dados: NovoPedido): CorpoDoPedido {
       quantidadeBolsas: item.quantidade,
     })),
   };
+}
+
+// Troca "Gestor #13" pelo nome de verdade (rota GET /usuarios/nomes do MS4).
+// Se a busca falhar, fica o "Gestor #13": o nome é um enfeite e não pode derrubar a tela.
+async function comNomeDoGestor(pedido: Pedido): Promise<Pedido> {
+  if (!pedido.solicitadoPorId) return pedido;
+  try {
+    const nomes = await buscarNomes([pedido.solicitadoPorId]);
+    const nome = nomes[pedido.solicitadoPorId];
+    return nome ? { ...pedido, solicitadoPor: nome } : pedido;
+  } catch {
+    return pedido;
+  }
 }
 
 // "2026-11-25T01:30": data e hora de agora, no fuso do navegador (usado só no mock).
@@ -204,7 +219,7 @@ export async function buscarPedidoPorId(id: number): Promise<Pedido | null> {
   }
 
   try {
-    return converterPedido(await requisicao<PedidoCompletoDaApi>(`/requests/${id}`));
+    return await comNomeDoGestor(converterPedido(await requisicao<PedidoCompletoDaApi>(`/requests/${id}`)));
   } catch (erro) {
     if (erro instanceof ErroDeApi && erro.status === 404) return null;
     throw erro;
@@ -261,7 +276,9 @@ export async function cancelarPedido(id: number): Promise<Pedido> {
   }
 
   try {
-    return converterPedido(await requisicao<PedidoCompletoDaApi>(`/requests/${id}/cancel`, { metodo: "PATCH" }));
+    return await comNomeDoGestor(
+      converterPedido(await requisicao<PedidoCompletoDaApi>(`/requests/${id}/cancel`, { metodo: "PATCH" })),
+    );
   } catch (erro) {
     // O texto padrão de 409 do api.ts é o do cadastro de CPF; aqui o significado é outro.
     if (erro instanceof ErroDeApi && erro.status === 409) {

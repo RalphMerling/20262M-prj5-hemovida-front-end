@@ -29,6 +29,7 @@ export interface Pedido {
   criadoEm: string; // data e hora: AAAA-MM-DDTHH:mm
   entregaPrevista?: string; // data e hora: AAAA-MM-DDTHH:mm
   solicitadoPor: string;
+  solicitadoPorId?: number; // id do gestor no MS4; serve para buscar o nome dele
   justificativa?: string; // só nos pedidos emergenciais
   itens: ItemPedido[]; // na lista da API vem vazio: só o detalhe traz os itens
   totalItens?: number; // quantos itens o pedido tem (a lista da API só manda isso)
